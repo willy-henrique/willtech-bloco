@@ -64,6 +64,7 @@ export interface ProjectCredential {
   email?: string;
   password?: string;
   url?: string;
+  env?: string; // Conteúdo do arquivo .env
   notes?: string;
   createdAt: number;
 }
@@ -76,8 +77,11 @@ export interface ProjectPayment {
   amount?: number;
   currency?: string;
   status: 'pending' | 'paid' | 'overdue';
+  isRecurring?: boolean; // Se é recorrente (mensal)
+  recurringDay?: number; // Dia do mês (ex: 4 para dia 04)
   notes?: string;
   createdAt: number;
+  paidAt?: number; // Data em que foi marcado como pago
 }
 
 export interface ProjectNote {

@@ -32,9 +32,14 @@ VITE_FIREBASE_APP_ID=seu_app_id
 3. Vá em **Firestore Database**
 4. Crie o banco de dados (modo de produção ou teste)
 
-### 3. Regras de Segurança
+### 3. Regras de Segurança ⚠️ **OBRIGATÓRIO**
 
-Configure as regras de segurança do Firestore. Para desenvolvimento, você pode usar:
+**IMPORTANTE:** Sem configurar as regras, os projetos NÃO serão salvos!
+
+1. Acesse o [Firebase Console](https://console.firebase.google.com/)
+2. Selecione seu projeto
+3. Vá em **Firestore Database** → **Regras**
+4. Cole o seguinte código e clique em **Publicar**:
 
 ```javascript
 rules_version = '2';
@@ -49,6 +54,8 @@ service cloud.firestore {
 ```
 
 **⚠️ ATENÇÃO:** Para produção, configure regras de segurança adequadas com autenticação!
+
+📖 **Veja o arquivo `CONFIGURAR_FIRESTORE.md` para instruções detalhadas!**
 
 ### 4. Estrutura das Coleções
 

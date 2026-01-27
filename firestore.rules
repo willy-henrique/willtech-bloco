@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir leitura/escrita para todas as coleções
+    // ⚠️ ATENÇÃO: Estas regras permitem acesso total!
+    // Use apenas para desenvolvimento ou configure autenticação para produção
+    
+    match /{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Alternativa mais segura (descomente para usar):
+    // Requer autenticação para todas as operações
+    // match /{document=**} {
+    //   allow read, write: if request.auth != null;
+    // }
+  }
+}

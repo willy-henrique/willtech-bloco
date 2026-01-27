@@ -58,8 +58,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             try {
               const id = await projectsService.create(project);
               migratedProjects.push({ ...project, id, createdAt: Date.now() });
-            } catch (error) {
+            } catch (error: any) {
               console.error('Erro ao migrar projeto:', error);
+              if (error?.code === 'permission-denied') {
+                console.warn('⚠️ Não foi possível migrar projetos. Configure as regras do Firestore!');
+                break; // Para de tentar migrar se não tiver permissão
+              }
             }
           }
           setProjects(migratedProjects);
@@ -183,8 +187,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProject = useCallback(async (project: Omit<Project, 'id' | 'createdAt'>) => {
     try {
       await projectsService.create(project);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao adicionar projeto:', error);
+      if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+        alert('❌ Erro de permissão! Configure as regras do Firestore.\n\nVeja o arquivo CONFIGURAR_FIRESTORE.md para instruções.');
+      }
       throw error;
     }
   }, []);

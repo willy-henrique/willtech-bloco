@@ -1,8 +1,9 @@
 
-import React from 'react';
-import { Project, Task } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Project, Task, ProjectPayment } from '../types';
 import { motion } from 'framer-motion';
-import { Layers, Activity, Clock } from 'lucide-react';
+import { Layers, Activity, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { projectPaymentsService } from '../src/services/firestoreService';
 
 interface ProjectCardProps {
   project: Project;
@@ -11,6 +12,48 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks }) => {
   const pendingTasks = tasks.filter(t => t.projectId === project.id && !t.isCompleted).length;
+  const [pendingPayments, setPendingPayments] = useState<ProjectPayment[]>([]);
+
+  useEffect(() => {
+    const loadPayments = async () => {
+      try {
+        const payments = await projectPaymentsService.getByProjectId(project.id);
+        // Filtrar apenas pagamentos pendentes ou vencidos
+        const today = new Date();
+        const pending = payments.filter(p => {
+          if (p.status === 'paid') {
+            // Se é recorrente e já foi pago, verificar se já passou o dia novamente
+            if (p.isRecurring && p.recurringDay && p.paidAt) {
+              const paidDate = new Date(p.paidAt);
+              const currentDay = today.getDate();
+              // Se já passou o dia do mês desde o último pagamento, mostrar como pendente
+              if (currentDay >= p.recurringDay && today.getMonth() !== paidDate.getMonth()) {
+                return true;
+              }
+            }
+            return false;
+          }
+          
+          // Se é recorrente, verificar se o dia do mês já chegou
+          if (p.isRecurring && p.recurringDay) {
+            const currentDay = today.getDate();
+            return currentDay >= p.recurringDay;
+          }
+          
+          // Para pagamentos não recorrentes, verificar data de vencimento
+          const dueDate = new Date(p.dueDate);
+          return dueDate <= today;
+        });
+        setPendingPayments(pending);
+      } catch (error) {
+        console.error('Erro ao carregar pagamentos:', error);
+      }
+    };
+    loadPayments();
+    // Atualizar a cada minuto para verificar se chegou o dia
+    const interval = setInterval(loadPayments, 60000);
+    return () => clearInterval(interval);
+  }, [project.id]);
 
   return (
     <motion.div
@@ -36,6 +79,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks }) => {
           {project.status}
         </div>
       </div>
+
+      {/* Alertas de Pagamento */}
+      {pendingPayments.length > 0 && (
+        <div className="mb-4 p-3 bg-red-500/10 border-2 border-red-500/50 rounded-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle size={14} className="text-red-500" />
+            <span className="text-xs font-bold text-red-400 uppercase">Pagamento Pendente</span>
+          </div>
+          {pendingPayments.map(payment => (
+            <div key={payment.id} className="text-xs text-red-300">
+              {payment.title} {payment.isRecurring && payment.recurringDay && `(Dia ${payment.recurringDay})`}
+              {payment.amount && ` - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: payment.currency || 'BRL' }).format(payment.amount)}`}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-4">
         <div>
