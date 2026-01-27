@@ -207,16 +207,33 @@ export const vaultService = {
 // ==================== PROJECTS ====================
 export const projectsService = {
   async getAll(): Promise<Project[]> {
-    const q = query(collection(db, COLLECTIONS.PROJECTS), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-      } as Project;
-    });
+    try {
+      const q = query(collection(db, COLLECTIONS.PROJECTS), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+        } as Project;
+      });
+    } catch (error: any) {
+      // Se o erro for por falta de índice, tentar sem orderBy
+      if (error?.code === 'failed-precondition') {
+        console.warn('Índice não criado. Buscando sem ordenação...');
+        const snapshot = await getDocs(collection(db, COLLECTIONS.PROJECTS));
+        return snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+          } as Project;
+        });
+      }
+      throw error;
+    }
   },
 
   async getById(id: string): Promise<Project | null> {
@@ -253,18 +270,62 @@ export const projectsService = {
   },
 
   subscribe(callback: (projects: Project[]) => void): Unsubscribe {
-    const q = query(collection(db, COLLECTIONS.PROJECTS), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const projects = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-        } as Project;
+    let unsubscribe: Unsubscribe;
+    
+    try {
+      const q = query(collection(db, COLLECTIONS.PROJECTS), orderBy('createdAt', 'desc'));
+      unsubscribe = onSnapshot(
+        q, 
+        (snapshot) => {
+          const projects = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+            } as Project;
+          });
+          // Sempre chamar callback com os projetos do Firestore
+          callback(projects);
+        },
+        (error: any) => {
+          console.error('Erro no listener de projetos:', error);
+          // Se for erro de índice, tentar sem orderBy
+          if (error?.code === 'failed-precondition') {
+            console.warn('Índice não criado. Usando listener sem ordenação...');
+            const qWithoutOrder = query(collection(db, COLLECTIONS.PROJECTS));
+            unsubscribe = onSnapshot(qWithoutOrder, (snapshot) => {
+              const projects = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                  id: doc.id,
+                  ...data,
+                  createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+                } as Project;
+              });
+              callback(projects);
+            });
+          }
+          // Em caso de outro erro, não chamar callback para não perder os projetos atuais
+        }
+      );
+    } catch (error) {
+      // Se não conseguir criar query com orderBy, usar sem ordenação
+      const q = query(collection(db, COLLECTIONS.PROJECTS));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const projects = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+          } as Project;
+        });
+        callback(projects);
       });
-      callback(projects);
-    });
+    }
+    
+    return unsubscribe;
   }
 };
 

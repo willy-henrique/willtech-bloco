@@ -50,10 +50,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           vaultService.getAll().catch(() => [])
         ]);
 
-        // Se não houver projetos no Firestore, usar os iniciais e migrar
+        // Se não houver projetos no Firestore, tentar migrar os iniciais
         if (initialProjects.length === 0) {
-          // Migrar projetos iniciais para o Firestore
+          // Migrar projetos iniciais para o Firestore apenas se não houver erro de permissão
           const migratedProjects: Project[] = [];
+          let hasPermissionError = false;
+          
           for (const project of INITIAL_PROJECTS) {
             try {
               const id = await projectsService.create(project);
@@ -62,12 +64,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               console.error('Erro ao migrar projeto:', error);
               if (error?.code === 'permission-denied') {
                 console.warn('⚠️ Não foi possível migrar projetos. Configure as regras do Firestore!');
+                hasPermissionError = true;
                 break; // Para de tentar migrar se não tiver permissão
               }
             }
           }
-          setProjects(migratedProjects);
+          
+          // Só usar projetos migrados se não houve erro de permissão e conseguiu migrar pelo menos um
+          if (!hasPermissionError && migratedProjects.length > 0) {
+            setProjects(migratedProjects);
+          } else if (hasPermissionError) {
+            // Se não tem permissão, usar projetos iniciais como fallback temporário
+            setProjects(INITIAL_PROJECTS.map(p => ({ ...p, id: Math.random().toString(36), createdAt: Date.now() })));
+          } else {
+            // Se não conseguiu migrar mas não foi erro de permissão, deixar vazio
+            setProjects([]);
+          }
         } else {
+          // Se já tem projetos no Firestore, usar eles
           setProjects(initialProjects);
         }
 
@@ -78,7 +92,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // Configurar listeners em tempo real
         unsubscribeProjects = projectsService.subscribe((updatedProjects) => {
-          setProjects(updatedProjects.length > 0 ? updatedProjects : INITIAL_PROJECTS);
+          // Sempre usar os projetos do Firestore, nunca substituir por INITIAL_PROJECTS
+          // Se estiver vazio, pode ser que realmente não tenha projetos ou erro de permissão
+          setProjects(updatedProjects);
         });
 
         unsubscribeTasks = tasksService.subscribe((updatedTasks) => {
@@ -101,8 +117,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const savedSnippets = localStorage.getItem('wt_snippets');
         const savedVault = localStorage.getItem('wt_vault');
         
-        if (savedProjects) setProjects(JSON.parse(savedProjects));
-        else setProjects(INITIAL_PROJECTS);
+        if (savedProjects) {
+          const parsed = JSON.parse(savedProjects);
+          setProjects(parsed);
+        } else {
+          // Usar projetos iniciais apenas como último recurso
+          setProjects(INITIAL_PROJECTS.map(p => ({ ...p, id: Math.random().toString(36), createdAt: Date.now() })));
+        }
         if (savedTasks) setTasks(JSON.parse(savedTasks));
         if (savedSnippets) setSnippets(JSON.parse(savedSnippets));
         else setSnippets(INITIAL_SNIPPETS);
@@ -186,11 +207,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addProject = useCallback(async (project: Omit<Project, 'id' | 'createdAt'>) => {
     try {
-      await projectsService.create(project);
+      const id = await projectsService.create(project);
+      console.log('✅ Projeto criado com sucesso:', id);
+      // O listener vai atualizar automaticamente, mas garantimos que foi criado
+      return id;
     } catch (error: any) {
-      console.error('Erro ao adicionar projeto:', error);
+      console.error('❌ Erro ao adicionar projeto:', error);
       if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
         alert('❌ Erro de permissão! Configure as regras do Firestore.\n\nVeja o arquivo CONFIGURAR_FIRESTORE.md para instruções.');
+      } else if (error?.code === 'failed-precondition') {
+        alert('⚠️ Índice do Firestore não criado. O projeto foi criado, mas pode não aparecer imediatamente.\n\nCrie o índice seguindo o link no console.');
       }
       throw error;
     }
