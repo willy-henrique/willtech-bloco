@@ -1,10 +1,6 @@
 
-export enum ProjectId {
-  NATURIZE = 'Naturize',
-  AUGE = 'Auge',
-  SUPERMERCADO = 'Supermercado',
-  DETRAN = 'Detran-GO'
-}
+// ProjectId agora é uma string para permitir projetos dinâmicos
+export type ProjectId = string;
 
 export enum TaskPriority {
   CRITICAL = 'Critical',
@@ -33,12 +29,14 @@ export interface Task {
 }
 
 export interface Project {
-  id: ProjectId;
+  id: string; // ID único do projeto
   name: string;
   type: string;
   status: 'Active' | 'Maintenance' | 'Legacy';
   progress: number;
   color: string;
+  createdAt?: number;
+  stack?: string; // Stack tecnológico (ex: "React/Node", "PHP/SQL")
 }
 
 export interface Snippet {
@@ -55,4 +53,51 @@ export interface ContractDeadline {
   date: string;
   projectId: ProjectId;
   type: 'Contract' | 'Sprint' | 'Payment';
+}
+
+// Detalhes do Projeto - Bloco de Notas
+export interface ProjectCredential {
+  id: string;
+  projectId: string;
+  title: string;
+  username?: string;
+  email?: string;
+  password?: string;
+  url?: string;
+  notes?: string;
+  createdAt: number;
+}
+
+export interface ProjectPayment {
+  id: string;
+  projectId: string;
+  title: string;
+  dueDate: string; // YYYY-MM-DD
+  amount?: number;
+  currency?: string;
+  status: 'pending' | 'paid' | 'overdue';
+  notes?: string;
+  createdAt: number;
+}
+
+export interface ProjectNote {
+  id: string;
+  projectId: string;
+  title: string;
+  content: string;
+  category?: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface ProjectDetail {
+  projectId: string;
+  description?: string;
+  clientName?: string;
+  clientContact?: string;
+  repositoryUrl?: string;
+  productionUrl?: string;
+  stagingUrl?: string;
+  createdAt: number;
+  updatedAt?: number;
 }

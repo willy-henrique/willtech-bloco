@@ -3,16 +3,32 @@ import React, { useState } from 'react';
 import { useApp } from './AppContext';
 import Terminal from './components/Terminal';
 import ProjectCard from './components/ProjectCard';
+import ProjectModal from './components/ProjectModal';
+import ProjectDetails from './components/ProjectDetails';
 import EisenhowerMatrix from './components/EisenhowerMatrix';
 import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search } from 'lucide-react';
+import { Project } from './types';
 
 const MainDashboard: React.FC = () => {
-  const { projects, tasks } = useApp();
+  const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
   const [mobileTab, setMobileTab] = useState<'projects' | 'tasks' | 'vault' | 'config'>('projects');
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  // Se um projeto foi selecionado, mostrar detalhes
+  if (selectedProject) {
+    return (
+      <ProjectDetails 
+        project={selectedProject} 
+        onBack={() => setSelectedProject(null)} 
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen bg-black overflow-hidden font-sans">
@@ -71,10 +87,44 @@ const MainDashboard: React.FC = () => {
                     <div className="w-1.5 h-1.5 rounded-full bg-lime-500 shadow-[0_0_10px_#84cc16]"></div>
                     Active Systems
                   </h2>
+                  <button
+                    onClick={() => {
+                      setEditingProject(null);
+                      setIsProjectModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 bg-lime-500 text-black rounded-lg text-xs font-bold hover:bg-lime-400 transition-colors flex items-center gap-1.5"
+                  >
+                    <Plus size={14} />
+                    Novo Projeto
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {projects.map((proj) => (
-                    <ProjectCard key={proj.id} project={proj} tasks={tasks} />
+                    <div
+                      key={proj.id}
+                      className="group relative cursor-pointer"
+                      onClick={() => setSelectedProject(proj)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setEditingProject(proj);
+                        setIsProjectModalOpen(true);
+                      }}
+                    >
+                      <ProjectCard project={proj} tasks={tasks} />
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProject(proj);
+                            setIsProjectModalOpen(true);
+                          }}
+                          className="p-1.5 bg-neutral-800/90 hover:bg-neutral-700 rounded-lg text-neutral-400 hover:text-white transition-colors"
+                          title="Editar projeto"
+                        >
+                          <Settings size={14} />
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </section>
@@ -170,6 +220,19 @@ const MainDashboard: React.FC = () => {
           </button>
         </div>
       </main>
+
+      {/* Project Modal */}
+      <ProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => {
+          setIsProjectModalOpen(false);
+          setEditingProject(null);
+        }}
+        onSave={addProject}
+        onUpdate={updateProject}
+        onDelete={deleteProject}
+        project={editingProject}
+      />
     </div>
   );
 };

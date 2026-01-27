@@ -1,39 +1,39 @@
 
 import React from 'react';
-import { Project, ProjectId, ContractDeadline, Snippet } from './types';
+import { Project, ContractDeadline, Snippet } from './types';
 
-export const INITIAL_PROJECTS: Project[] = [
+export const INITIAL_PROJECTS: Omit<Project, 'id' | 'createdAt'>[] = [
   {
-    id: ProjectId.NATURIZE,
     name: 'Naturize',
     type: 'ERP/SaaS',
     status: 'Active',
     progress: 75,
-    color: '#3fcf8e' // WillTech Green
+    color: '#3fcf8e', // WillTech Green
+    stack: 'React/Node'
   },
   {
-    id: ProjectId.AUGE,
     name: 'Auge',
     type: 'Business Intelligence',
     status: 'Active',
     progress: 40,
-    color: '#00d1ff' // BI Blue
+    color: '#00d1ff', // BI Blue
+    stack: 'React/Node'
   },
   {
-    id: ProjectId.SUPERMERCADO,
     name: 'Supermercado',
     type: 'Legado / PHP',
     status: 'Maintenance',
     progress: 95,
-    color: '#ff9f00' // Warning Orange
+    color: '#ff9f00', // Warning Orange
+    stack: 'PHP/SQL'
   },
   {
-    id: ProjectId.DETRAN,
     name: 'Detran-GO',
     type: 'EdTech',
     status: 'Active',
     progress: 20,
-    color: '#ff4d4d' // Critical Red
+    color: '#ff4d4d', // Critical Red
+    stack: 'React/Node'
   }
 ];
 
@@ -42,14 +42,14 @@ export const INITIAL_DEADLINES: ContractDeadline[] = [
     id: '1',
     title: 'Aviso Prévio (30 dias)',
     date: '2024-06-15',
-    projectId: ProjectId.NATURIZE,
+    projectId: 'Naturize',
     type: 'Contract'
   },
   {
     id: '2',
     title: 'Sprint Delivery 14',
     date: '2024-05-30',
-    projectId: ProjectId.AUGE,
+    projectId: 'Auge',
     type: 'Sprint'
   }
 ];

@@ -70,7 +70,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks }) => {
               <Layers size={10} className="text-blue-500" /> Stack
             </div>
             <div className="text-xs font-bold text-neutral-300 truncate">
-              {project.id === 'Supermercado' ? 'PHP/SQL' : 'React/Node'}
+              {project.stack || 'React/Node'}
             </div>
           </div>
         </div>

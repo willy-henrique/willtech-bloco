@@ -23,7 +23,10 @@ const Terminal: React.FC = () => {
     if (taskMatch) {
       const [, projName, priorityInput, desc] = taskMatch;
       
-      const project = projects.find(p => p.id.toLowerCase().includes(projName.toLowerCase()));
+      const project = projects.find(p => 
+        p.name.toLowerCase().includes(projName.toLowerCase()) ||
+        p.id.toLowerCase().includes(projName.toLowerCase())
+      );
       
       if (!project) {
         addLog(`Error: Project "${projName}" not found.`, 'error');
