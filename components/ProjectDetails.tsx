@@ -1,18 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, Plus, Edit2, Trash2, Lock, DollarSign, FileText, 
+import {
+  ArrowLeft, Plus, Edit2, Trash2, Lock, DollarSign, FileText,
   Calendar, AlertCircle, CheckCircle, XCircle, Copy, Eye, EyeOff,
-  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X
+  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Download
 } from 'lucide-react';
 import { Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail } from '../types';
-import { 
-  projectCredentialsService, 
-  projectPaymentsService, 
+import {
+  projectCredentialsService,
+  projectPaymentsService,
   projectNotesService,
-  projectDetailsService 
+  projectDetailsService
 } from '../src/services/firestoreService';
+import EnvEditor from './EnvEditor';
 
 interface ProjectDetailsProps {
   project: Project;
@@ -444,18 +445,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
                 />
                 <div className="mb-3">
-                  <label className="block text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
-                    <FileText size={14} />
-                    Arquivo .env (opcional)
-                  </label>
-                  <textarea
-                    placeholder="Cole aqui o conteúdo do arquivo .env do projeto..."
+                  <EnvEditor
                     value={credentialForm.env || ''}
-                    onChange={(e) => setCredentialForm({ ...credentialForm, env: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 font-mono text-xs"
-                    rows={6}
+                    onChange={(value) => setCredentialForm({ ...credentialForm, env: value })}
+                    placeholder="Cole aqui o conteúdo do arquivo .env do projeto..."
                   />
-                  <p className="text-xs text-neutral-500 mt-1">Cole todo o conteúdo do arquivo .env aqui para manter salvo</p>
                 </div>
                 <textarea
                   placeholder="Notas adicionais (opcional)"
@@ -533,23 +527,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         )}
                       </div>
                       {cred.env && (
-                        <div className="mt-3 p-3 bg-neutral-950 rounded-lg border border-neutral-800">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-                              <FileText size={12} />
-                              Arquivo .env
-                            </div>
-                            <button
-                              onClick={() => copyToClipboard(cred.env!)}
-                              className="text-xs text-lime-500 hover:text-lime-400 flex items-center gap-1"
-                            >
-                              <Copy size={12} />
-                              Copiar
-                            </button>
-                          </div>
-                          <pre className="text-xs text-neutral-300 font-mono whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
-                            {cred.env}
-                          </pre>
+                        <div className="mt-3">
+                          <EnvEditor
+                            value={cred.env}
+                            readOnly={true}
+                          />
                         </div>
                       )}
                     </div>
