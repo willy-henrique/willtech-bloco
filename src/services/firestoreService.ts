@@ -332,20 +332,41 @@ export const projectsService = {
 // ==================== PROJECT CREDENTIALS ====================
 export const projectCredentialsService = {
   async getByProjectId(projectId: string): Promise<ProjectCredential[]> {
-    const q = query(
-      collection(db, COLLECTIONS.PROJECT_CREDENTIALS),
-      where('projectId', '==', projectId),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-      } as ProjectCredential;
-    });
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.PROJECT_CREDENTIALS),
+        where('projectId', '==', projectId),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+        } as ProjectCredential;
+      });
+    } catch (error: any) {
+      // Se o erro for por falta de índice, tentar sem orderBy
+      if (error?.code === 'failed-precondition') {
+        console.warn('Índice não criado para project_credentials. Buscando sem ordenação...');
+        const q = query(
+          collection(db, COLLECTIONS.PROJECT_CREDENTIALS),
+          where('projectId', '==', projectId)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+          } as ProjectCredential;
+        }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      }
+      throw error;
+    }
   },
 
   async create(credential: Omit<ProjectCredential, 'id' | 'createdAt'>): Promise<string> {
@@ -410,21 +431,43 @@ export const projectPaymentsService = {
 // ==================== PROJECT NOTES ====================
 export const projectNotesService = {
   async getByProjectId(projectId: string): Promise<ProjectNote[]> {
-    const q = query(
-      collection(db, COLLECTIONS.PROJECT_NOTES),
-      where('projectId', '==', projectId),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
-        updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt
-      } as ProjectNote;
-    });
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.PROJECT_NOTES),
+        where('projectId', '==', projectId),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
+          updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt
+        } as ProjectNote;
+      });
+    } catch (error: any) {
+      // Se o erro for por falta de índice, tentar sem orderBy
+      if (error?.code === 'failed-precondition') {
+        console.warn('Índice não criado para project_notes. Buscando sem ordenação...');
+        const q = query(
+          collection(db, COLLECTIONS.PROJECT_NOTES),
+          where('projectId', '==', projectId)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
+            updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt
+          } as ProjectNote;
+        }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      }
+      throw error;
+    }
   },
 
   async create(note: Omit<ProjectNote, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

@@ -75,6 +75,19 @@ service cloud.firestore {
 - `project_notes` - Notas dos projetos
 - `project_details` - Detalhes dos projetos
 
+## 🔍 Índices do Firestore (Opcional)
+
+Algumas queries usam `orderBy` que podem requerer índices compostos. Se você receber um erro de índice:
+
+1. O Firebase Console mostrará um link para criar o índice automaticamente
+2. Clique no link e crie o índice
+3. Ou ignore - o código tem fallback para funcionar sem ordenação
+
+**Índices recomendados:**
+- `project_credentials`: `projectId` (Ascending) + `createdAt` (Descending)
+- `project_notes`: `projectId` (Ascending) + `createdAt` (Descending)
+- `project_payments`: `projectId` (Ascending) + `dueDate` (Ascending)
+
 ## 🐛 Troubleshooting
 
 ### Erro: "Missing or insufficient permissions"

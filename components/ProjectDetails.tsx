@@ -114,6 +114,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   // Credenciais
   const handleSaveCredential = async () => {
     try {
+      if (!credentialForm.title) {
+        alert('Por favor, preencha o título da credencial.');
+        return;
+      }
+      
       if (editingItem) {
         await projectCredentialsService.update(editingItem, credentialForm);
       } else {
@@ -131,8 +136,9 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       setCredentialForm({});
       setEditingItem(null);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar credencial:', error);
+      alert(`Erro ao salvar credencial: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
@@ -241,6 +247,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   // Notas
   const handleSaveNote = async () => {
     try {
+      if (!noteForm.title || !noteForm.content) {
+        alert('Por favor, preencha o título e o conteúdo da nota.');
+        return;
+      }
+      
       if (editingItem) {
         await projectNotesService.update(editingItem, noteForm);
       } else {
@@ -254,8 +265,9 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       setNoteForm({});
       setEditingItem(null);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar nota:', error);
+      alert(`Erro ao salvar nota: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
@@ -396,93 +408,154 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
 
             {/* Form */}
             {(editingItem || Object.keys(credentialForm).length > 0) && (
-              <div className="mb-6 p-4 bg-neutral-900 rounded-xl border border-neutral-800">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 shadow-xl"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Lock className="text-lime-500" size={20} />
+                  <h3 className="text-lg font-bold text-white">
+                    {editingItem ? 'Editar Credencial' : 'Nova Credencial'}
+                  </h3>
+                </div>
+                
                 <input
                   type="text"
                   placeholder="Título (ex: Admin, Dev, Staging)"
                   value={credentialForm.title || ''}
                   onChange={(e) => setCredentialForm({ ...credentialForm, title: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                  className="w-full mb-3 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all font-semibold"
+                  required
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                  <input
-                    type="text"
-                    placeholder="Usuário"
-                    value={credentialForm.username || ''}
-                    onChange={(e) => setCredentialForm({ ...credentialForm, username: e.target.value })}
-                    className="px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={credentialForm.email || ''}
-                    onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
-                    className="px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
-                  />
+                  <div>
+                    <label className="text-xs font-bold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                      <User size={12} />
+                      Usuário
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nome de usuário"
+                      value={credentialForm.username || ''}
+                      onChange={(e) => setCredentialForm({ ...credentialForm, username: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                      <Mail size={12} />
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={credentialForm.email || ''}
+                      onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    />
+                  </div>
                 </div>
                 <div className="mb-3 relative">
+                  <label className="text-xs font-bold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                    <Key size={12} />
+                    Senha
+                  </label>
                   <input
                     type={showPassword[editingItem || 'new'] ? 'text' : 'password'}
-                    placeholder="Senha"
+                    placeholder="Senha ou token"
                     value={credentialForm.password || ''}
                     onChange={(e) => setCredentialForm({ ...credentialForm, password: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 pr-10"
+                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 pr-12 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword({ ...showPassword, [editingItem || 'new']: !showPassword[editingItem || 'new'] })}
-                    className="absolute right-2 top-2 text-neutral-400 hover:text-white"
+                    className="absolute right-3 top-8 text-neutral-400 hover:text-lime-500 transition-colors"
+                    title={showPassword[editingItem || 'new'] ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword[editingItem || 'new'] ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <input
-                  type="url"
-                  placeholder="URL (opcional)"
-                  value={credentialForm.url || ''}
-                  onChange={(e) => setCredentialForm({ ...credentialForm, url: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
-                />
                 <div className="mb-3">
-                  <label className="block text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
-                    <FileText size={14} />
+                  <label className="text-xs font-bold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                    <LinkIcon size={12} />
+                    URL (opcional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://exemplo.com"
+                    value={credentialForm.url || ''}
+                    onChange={(e) => setCredentialForm({ ...credentialForm, url: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="text-sm font-bold text-neutral-400 mb-3 flex items-center gap-2">
+                    <FileText size={16} className="text-lime-500" />
                     Arquivo .env (opcional)
                   </label>
-                  <textarea
-                    placeholder="Cole aqui o conteúdo do arquivo .env do projeto..."
-                    value={credentialForm.env || ''}
-                    onChange={(e) => setCredentialForm({ ...credentialForm, env: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 font-mono text-xs"
-                    rows={6}
-                  />
-                  <p className="text-xs text-neutral-500 mt-1">Cole todo o conteúdo do arquivo .env aqui para manter salvo</p>
+                  <div className="relative">
+                    <textarea
+                      placeholder="Cole aqui o conteúdo do arquivo .env do projeto...&#10;&#10;Exemplo:&#10;DATABASE_URL=postgresql://...&#10;API_KEY=abc123&#10;SECRET_KEY=xyz789"
+                      value={credentialForm.env || ''}
+                      onChange={(e) => setCredentialForm({ ...credentialForm, env: e.target.value })}
+                      className="w-full px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 font-mono text-xs leading-relaxed transition-all"
+                      rows={10}
+                    />
+                    {credentialForm.env && (
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(credentialForm.env!)}
+                          className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-lime-500 rounded text-xs font-bold transition-all flex items-center gap-1"
+                          title="Copiar .env"
+                        >
+                          <Copy size={12} />
+                          Copiar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full bg-lime-500 mt-1.5"></div>
+                    <p className="text-xs text-neutral-500 flex-1">
+                      Cole todo o conteúdo do arquivo .env aqui. As variáveis serão armazenadas de forma segura.
+                    </p>
+                  </div>
                 </div>
-                <textarea
-                  placeholder="Notas adicionais (opcional)"
-                  value={credentialForm.notes || ''}
-                  onChange={(e) => setCredentialForm({ ...credentialForm, notes: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
-                  rows={2}
-                />
-                <div className="flex gap-2">
+                <div className="mb-4">
+                  <label className="block text-xs font-bold text-neutral-400 mb-1.5">
+                    Notas adicionais (opcional)
+                  </label>
+                  <textarea
+                    placeholder="Informações adicionais sobre esta credencial..."
+                    value={credentialForm.notes || ''}
+                    onChange={(e) => setCredentialForm({ ...credentialForm, notes: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    rows={2}
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-neutral-800">
                   <button
                     onClick={handleSaveCredential}
-                    className="px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center gap-2"
+                    disabled={!credentialForm.title}
+                    className="flex-1 px-5 py-3 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <Save size={16} />
-                    Salvar
+                    <Save size={18} />
+                    Salvar Credencial
                   </button>
                   <button
                     onClick={() => {
                       setCredentialForm({});
                       setEditingItem(null);
                     }}
-                    className="px-4 py-2 bg-neutral-800 text-neutral-400 rounded-lg font-bold hover:bg-neutral-700 transition-colors"
+                    className="px-5 py-3 bg-neutral-800 text-neutral-400 rounded-xl font-bold hover:bg-neutral-700 hover:text-white transition-all"
                   >
                     Cancelar
                   </button>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* List */}
@@ -533,23 +606,52 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         )}
                       </div>
                       {cred.env && (
-                        <div className="mt-3 p-3 bg-neutral-950 rounded-lg border border-neutral-800">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-                              <FileText size={12} />
-                              Arquivo .env
+                        <div className="mt-4 p-4 bg-gradient-to-br from-neutral-950 to-black rounded-xl border-2 border-neutral-800 hover:border-lime-500/50 transition-all">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <FileText size={16} className="text-lime-500" />
+                              <span className="text-sm font-bold text-white">Arquivo .env</span>
+                              <span className="px-2 py-0.5 bg-lime-500/10 text-lime-400 text-xs font-bold rounded border border-lime-500/20">
+                                {cred.env.split('\n').filter(line => line.trim()).length} variáveis
+                              </span>
                             </div>
                             <button
-                              onClick={() => copyToClipboard(cred.env!)}
-                              className="text-xs text-lime-500 hover:text-lime-400 flex items-center gap-1"
+                              onClick={() => {
+                                copyToClipboard(cred.env!);
+                                // Feedback visual temporário
+                                const btn = event?.currentTarget;
+                                if (btn) {
+                                  const originalText = btn.innerHTML;
+                                  btn.innerHTML = '<span class="text-green-400">✓ Copiado!</span>';
+                                  setTimeout(() => {
+                                    btn.innerHTML = originalText;
+                                  }, 2000);
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 hover:text-lime-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-lime-500/20"
                             >
-                              <Copy size={12} />
-                              Copiar
+                              <Copy size={14} />
+                              Copiar Tudo
                             </button>
                           </div>
-                          <pre className="text-xs text-neutral-300 font-mono whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
-                            {cred.env}
-                          </pre>
+                          <div className="relative">
+                            <pre className="text-xs text-neutral-300 font-mono whitespace-pre-wrap break-words max-h-60 overflow-y-auto p-3 bg-black/50 rounded-lg border border-neutral-800 custom-scrollbar">
+                              {cred.env}
+                            </pre>
+                            <div className="absolute bottom-2 right-2 flex gap-1">
+                              <button
+                                onClick={() => {
+                                  const lines = cred.env!.split('\n');
+                                  const vars = lines.filter(line => line.trim() && !line.trim().startsWith('#'));
+                                  copyToClipboard(vars.join('\n'));
+                                }}
+                                className="px-2 py-1 bg-neutral-800/90 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded text-xs transition-all"
+                                title="Copiar apenas variáveis (sem comentários)"
+                              >
+                                Variáveis
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -801,108 +903,175 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
         {/* NOTAS */}
         {activeTab === 'notes' && (
           <div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-white">Notas e Anotações</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Notas e Anotações</h2>
+                <p className="text-sm text-neutral-400">Organize suas ideias, bugs, features e documentações</p>
+              </div>
               <button
                 onClick={() => {
                   setEditingItem(null);
                   setNoteForm({});
                 }}
-                className="w-full sm:w-auto px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2"
               >
-                <Plus size={18} />
+                <Plus size={20} />
                 Nova Nota
               </button>
             </div>
 
             {/* Form */}
             {(editingItem || Object.keys(noteForm).length > 0) && (
-              <div className="mb-6 p-4 md:p-6 bg-neutral-900 rounded-xl border border-neutral-800">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 shadow-xl"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="text-lime-500" size={20} />
+                  <h3 className="text-lg font-bold text-white">
+                    {editingItem ? 'Editar Nota' : 'Nova Nota'}
+                  </h3>
+                </div>
+                
                 <input
                   type="text"
                   placeholder="Título da nota"
                   value={noteForm.title || ''}
                   onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                  className="w-full mb-3 px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 text-lg font-semibold"
+                  className="w-full mb-4 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 text-lg font-semibold transition-all"
                 />
+                
                 <textarea
-                  placeholder="Escreva sua nota aqui... (suporta markdown)"
+                  placeholder="Escreva sua nota aqui... (suporta markdown e quebras de linha)"
                   value={noteForm.content || ''}
                   onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                  className="w-full mb-3 px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 min-h-[200px] resize-y"
-                  rows={8}
+                  className="w-full mb-4 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 min-h-[250px] resize-y font-mono text-sm transition-all"
+                  rows={10}
                 />
-                <input
-                  type="text"
-                  placeholder="Categoria (ex: Bug, Feature, Documentação)"
-                  value={noteForm.category || ''}
-                  onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
-                />
-                <div className="flex flex-col sm:flex-row gap-2">
+                
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Categoria (ex: Bug, Feature, Documentação, Ideia)"
+                    value={noteForm.category || ''}
+                    onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
+                    className="flex-1 px-4 py-2 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                  />
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-neutral-800">
                   <button
                     onClick={handleSaveNote}
-                    className="flex-1 px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                    disabled={!noteForm.title || !noteForm.content}
+                    className="flex-1 px-5 py-3 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <Save size={16} />
-                    Salvar
+                    <Save size={18} />
+                    Salvar Nota
                   </button>
                   <button
                     onClick={() => {
                       setNoteForm({});
                       setEditingItem(null);
                     }}
-                    className="px-4 py-2 bg-neutral-800 text-neutral-400 rounded-lg font-bold hover:bg-neutral-700 transition-colors"
+                    className="px-5 py-3 bg-neutral-800 text-neutral-400 rounded-xl font-bold hover:bg-neutral-700 hover:text-white transition-all"
                   >
                     Cancelar
                   </button>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* List */}
-            <div className="space-y-3">
-              {notes.map(note => (
-                <div key={note.id} className="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-white mb-1">{note.title}</h3>
-                      {note.category && (
-                        <span className="text-xs text-neutral-500 bg-neutral-800 px-2 py-1 rounded">
-                          {note.category}
+            {notes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {notes.map(note => (
+                  <motion.div 
+                    key={note.id} 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="group p-5 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 hover:border-lime-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-lime-500/10"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-lime-400 transition-colors">
+                          {note.title}
+                        </h3>
+                        {note.category && (
+                          <span className="inline-block text-xs font-bold text-lime-400 bg-lime-500/10 px-3 py-1 rounded-full border border-lime-500/20">
+                            {note.category}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            setEditingItem(note.id);
+                            setNoteForm(note);
+                          }}
+                          className="p-2 text-neutral-400 hover:text-lime-500 hover:bg-lime-500/10 rounded-lg transition-all"
+                          title="Editar nota"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteNote(note.id)}
+                          className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                          title="Deletar nota"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-neutral-950/50 rounded-xl p-4 mb-3 border border-neutral-800">
+                      <p className="text-neutral-300 whitespace-pre-wrap text-sm leading-relaxed">
+                        {note.content}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs text-neutral-500">
+                      <span>
+                        Criada em {new Date(note.createdAt).toLocaleDateString('pt-BR', { 
+                          day: '2-digit', 
+                          month: 'short', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      {note.updatedAt && note.updatedAt !== note.createdAt && (
+                        <span className="text-lime-500/70">
+                          Editada
                         </span>
                       )}
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingItem(note.id);
-                          setNoteForm(note);
-                        }}
-                        className="p-2 text-neutral-400 hover:text-lime-500 transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="p-2 text-neutral-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-neutral-300 whitespace-pre-wrap">{note.content}</p>
-                  <p className="text-xs text-neutral-500 mt-2">
-                    {new Date(note.createdAt).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              ))}
-              {notes.length === 0 && (
-                <div className="text-center py-12 text-neutral-500">
-                  Nenhuma nota cadastrada. Clique em "Nova Nota" para adicionar.
-                </div>
-              )}
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-16 bg-neutral-900/50 rounded-2xl border-2 border-dashed border-neutral-800"
+              >
+                <FileText className="mx-auto mb-4 text-neutral-600" size={48} />
+                <h3 className="text-lg font-bold text-neutral-400 mb-2">Nenhuma nota cadastrada</h3>
+                <p className="text-sm text-neutral-500 mb-4">
+                  Comece organizando suas ideias, bugs e documentações
+                </p>
+                <button
+                  onClick={() => {
+                    setEditingItem(null);
+                    setNoteForm({});
+                  }}
+                  className="px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 mx-auto"
+                >
+                  <Plus size={18} />
+                  Criar Primeira Nota
+                </button>
+              </motion.div>
+            )}
           </div>
         )}
 
@@ -968,7 +1137,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       URLs do Projeto
                     </h3>
                     <div>
-                      <label className="block text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
+                      <label className="text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
                         <Code size={14} />
                         Repositório (GitHub/GitLab)
                       </label>
@@ -982,7 +1151,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
                           <Globe size={14} />
                           URL Produção
                         </label>
@@ -995,7 +1164,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-bold text-neutral-400 mb-2 flex items-center gap-2">
                           <Globe size={14} />
                           URL Staging
                         </label>
