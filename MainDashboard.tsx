@@ -131,10 +131,6 @@ const MainDashboard: React.FC = () => {
 
               {/* Priority Matrix */}
               <section className={`bg-neutral-900/20 p-4 md:p-6 rounded-3xl border border-neutral-900 ${mobileTab === 'projects' ? 'hidden xl:block' : 'block'}`}>
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 mb-6 flex items-center gap-2">
-                  <BarChart3 size={14} className="text-lime-500" />
-                  Strategic Priorities
-                </h2>
                 <EisenhowerMatrix />
               </section>
             </div>
@@ -170,17 +166,27 @@ const MainDashboard: React.FC = () => {
               </motion.section>
 
               {/* Server Status Mobile View */}
-              <div className="p-6 rounded-3xl bg-neutral-900/80 border border-neutral-800">
-                <div className="flex justify-between items-end mb-2">
-                  <h3 className="text-[10px] font-bold text-neutral-500 uppercase">WillTech Cloud</h3>
-                  <span className="text-[10px] font-mono text-lime-500">STABLE</span>
+              <motion.section 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-5 md:p-6 rounded-3xl bg-gradient-to-br from-neutral-900/80 to-neutral-950/80 border-2 border-neutral-800 shadow-lg"
+              >
+                <div className="flex justify-between items-end mb-3">
+                  <h3 className="text-xs font-black text-neutral-400 uppercase tracking-wider">WILLTECH CLOUD</h3>
+                  <span className="text-xs font-mono font-bold text-lime-500 bg-lime-500/10 px-2 py-1 rounded border border-lime-500/20">STABLE</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-1 flex-1 bg-neutral-800 rounded-full overflow-hidden">
-                    <div className="h-full w-[94%] bg-gradient-to-r from-lime-600 to-lime-400"></div>
+                  <div className="h-2 flex-1 bg-neutral-800 rounded-full overflow-hidden shadow-inner">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: '94%' }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      className="h-full bg-gradient-to-r from-lime-600 via-lime-500 to-lime-400 rounded-full shadow-lg shadow-lime-500/50"
+                    ></motion.div>
                   </div>
+                  <span className="text-[10px] font-mono text-neutral-500">94%</span>
                 </div>
-              </div>
+              </motion.section>
             </div>
           </div>
         </div>

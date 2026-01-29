@@ -29,6 +29,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [isEditingDetail, setIsEditingDetail] = useState(false);
+  const [showCredentialForm, setShowCredentialForm] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
 
   // Form states
   const [credentialForm, setCredentialForm] = useState<Partial<ProjectCredential>>({});
@@ -39,6 +41,13 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   useEffect(() => {
     loadData();
   }, [project.id]);
+
+  // Fechar formulários ao trocar de aba
+  useEffect(() => {
+    setShowCredentialForm(false);
+    setShowNoteForm(false);
+    setEditingItem(null);
+  }, [activeTab]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -135,6 +144,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       }
       setCredentialForm({});
       setEditingItem(null);
+      setShowCredentialForm(false);
       loadData();
     } catch (error: any) {
       console.error('Erro ao salvar credencial:', error);
@@ -264,6 +274,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       }
       setNoteForm({});
       setEditingItem(null);
+      setShowNoteForm(false);
       loadData();
     } catch (error: any) {
       console.error('Erro ao salvar nota:', error);
@@ -398,6 +409,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                 onClick={() => {
                   setEditingItem(null);
                   setCredentialForm({});
+                  setShowCredentialForm(true);
                 }}
                 className="px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center gap-2"
               >
@@ -407,7 +419,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
             </div>
 
             {/* Form */}
-            {(editingItem || Object.keys(credentialForm).length > 0) && (
+            {(showCredentialForm || editingItem) && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -549,6 +561,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     onClick={() => {
                       setCredentialForm({});
                       setEditingItem(null);
+                      setShowCredentialForm(false);
                     }}
                     className="px-5 py-3 bg-neutral-800 text-neutral-400 rounded-xl font-bold hover:bg-neutral-700 hover:text-white transition-all"
                   >
@@ -660,6 +673,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         onClick={() => {
                           setEditingItem(cred.id);
                           setCredentialForm(cred);
+                          setShowCredentialForm(true);
                         }}
                         className="p-2 text-neutral-400 hover:text-lime-500 transition-colors"
                       >
@@ -912,6 +926,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                 onClick={() => {
                   setEditingItem(null);
                   setNoteForm({});
+                  setShowNoteForm(true);
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2"
               >
@@ -921,7 +936,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
             </div>
 
             {/* Form */}
-            {(editingItem || Object.keys(noteForm).length > 0) && (
+            {(showNoteForm || editingItem) && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1008,6 +1023,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           onClick={() => {
                             setEditingItem(note.id);
                             setNoteForm(note);
+                            setShowNoteForm(true);
                           }}
                           className="p-2 text-neutral-400 hover:text-lime-500 hover:bg-lime-500/10 rounded-lg transition-all"
                           title="Editar nota"
@@ -1064,6 +1080,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   onClick={() => {
                     setEditingItem(null);
                     setNoteForm({});
+                    setShowNoteForm(true);
                   }}
                   className="px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 mx-auto"
                 >
