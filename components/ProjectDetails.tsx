@@ -31,6 +31,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   const [isEditingDetail, setIsEditingDetail] = useState(false);
   const [showCredentialForm, setShowCredentialForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   // Form states
   const [credentialForm, setCredentialForm] = useState<Partial<ProjectCredential>>({});
@@ -46,6 +47,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   useEffect(() => {
     setShowCredentialForm(false);
     setShowNoteForm(false);
+    setShowPaymentForm(false);
     setEditingItem(null);
   }, [activeTab]);
 
@@ -180,6 +182,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   // Pagamentos
   const handleSavePayment = async () => {
     try {
+      if (!paymentForm.title || !paymentForm.title.trim()) {
+        alert('Por favor, preencha o título do pagamento.');
+        return;
+      }
+      
       let dueDate = paymentForm.dueDate || new Date().toISOString().split('T')[0];
       
       // Se é recorrente, calcular a próxima data baseada no dia do mês
@@ -203,37 +210,50 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       const tempPayment: ProjectPayment = {
         id: editingItem || '',
         projectId: project.id,
-        title: paymentForm.title || '',
+        title: paymentForm.title.trim(),
         dueDate,
         amount: paymentForm.amount,
         currency: paymentForm.currency || 'BRL',
         status: paymentForm.status || 'pending',
-        isRecurring: paymentForm.isRecurring,
+        isRecurring: paymentForm.isRecurring || false,
         recurringDay: paymentForm.recurringDay,
         createdAt: Date.now()
       };
       const status = getPaymentStatus(tempPayment);
       
+      // Remover campos undefined/null/vazios antes de salvar
+      const cleanPayment: Partial<ProjectPayment> = {
+        projectId: project.id,
+        title: paymentForm.title.trim(),
+        dueDate,
+        currency: paymentForm.currency || 'BRL',
+        status,
+        isRecurring: paymentForm.isRecurring || false
+      };
+      
+      // Adicionar apenas campos que têm valor
+      if (paymentForm.amount !== undefined && paymentForm.amount !== null) {
+        cleanPayment.amount = paymentForm.amount;
+      }
+      if (paymentForm.recurringDay !== undefined && paymentForm.recurringDay !== null) {
+        cleanPayment.recurringDay = paymentForm.recurringDay;
+      }
+      if (paymentForm.notes && paymentForm.notes.trim()) {
+        cleanPayment.notes = paymentForm.notes.trim();
+      }
+      
       if (editingItem) {
-        await projectPaymentsService.update(editingItem, { ...paymentForm, dueDate, status });
+        await projectPaymentsService.update(editingItem, cleanPayment);
       } else {
-        await projectPaymentsService.create({
-          projectId: project.id,
-          title: paymentForm.title || '',
-          dueDate,
-          amount: paymentForm.amount,
-          currency: paymentForm.currency || 'BRL',
-          status,
-          isRecurring: paymentForm.isRecurring || false,
-          recurringDay: paymentForm.recurringDay,
-          notes: paymentForm.notes
-        } as Omit<ProjectPayment, 'id' | 'createdAt'>);
+        await projectPaymentsService.create(cleanPayment as Omit<ProjectPayment, 'id' | 'createdAt'>);
       }
       setPaymentForm({});
       setEditingItem(null);
+      setShowPaymentForm(false);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar pagamento:', error);
+      alert(`Erro ao salvar pagamento: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
@@ -738,6 +758,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                 onClick={() => {
                   setEditingItem(null);
                   setPaymentForm({ dueDate: new Date().toISOString().split('T')[0], status: 'pending' });
+                  setShowPaymentForm(true);
                 }}
                 className="w-full sm:w-auto px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
               >
@@ -747,7 +768,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
             </div>
 
             {/* Form */}
-            {(editingItem || Object.keys(paymentForm).length > 0) && (
+            {(showPaymentForm || editingItem) && (
               <div className="mb-6 p-4 md:p-6 bg-neutral-900 rounded-xl border border-neutral-800">
                 <input
                   type="text"
@@ -825,6 +846,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     onClick={() => {
                       setPaymentForm({});
                       setEditingItem(null);
+                      setShowPaymentForm(false);
                     }}
                     className="px-4 py-2 bg-neutral-800 text-neutral-400 rounded-lg font-bold hover:bg-neutral-700 transition-colors"
                   >
@@ -913,6 +935,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                             onClick={() => {
                               setEditingItem(payment.id);
                               setPaymentForm(payment);
+                              setShowPaymentForm(true);
                             }}
                             className="p-2 text-neutral-400 hover:text-lime-500 transition-colors"
                           >

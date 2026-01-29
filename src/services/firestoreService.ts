@@ -488,16 +488,78 @@ export const projectPaymentsService = {
 
   async create(payment: Omit<ProjectPayment, 'id' | 'createdAt'>): Promise<string> {
     const docRef = doc(collection(db, COLLECTIONS.PROJECT_PAYMENTS));
-    await setDoc(docRef, {
-      ...payment,
+    
+    // Remover campos undefined/null antes de salvar no Firestore
+    const cleanData: any = {
+      projectId: payment.projectId,
+      title: payment.title,
+      dueDate: payment.dueDate,
+      currency: payment.currency || 'BRL',
+      status: payment.status || 'pending',
+      isRecurring: payment.isRecurring || false,
       createdAt: Timestamp.now()
-    });
+    };
+    
+    // Adicionar apenas campos que têm valor
+    if (payment.amount !== undefined && payment.amount !== null) {
+      cleanData.amount = payment.amount;
+    }
+    if (payment.recurringDay !== undefined && payment.recurringDay !== null) {
+      cleanData.recurringDay = payment.recurringDay;
+    }
+    if (payment.notes !== undefined && payment.notes !== null && payment.notes.trim() !== '') {
+      cleanData.notes = payment.notes.trim();
+    }
+    
+    await setDoc(docRef, cleanData);
     return docRef.id;
   },
 
   async update(id: string, updates: Partial<ProjectPayment>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.PROJECT_PAYMENTS, id);
-    await updateDoc(docRef, updates as any);
+    
+    // Remover campos undefined/null antes de atualizar no Firestore
+    const cleanUpdates: any = {};
+    
+    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
+      cleanUpdates.title = updates.title.trim();
+    }
+    if (updates.dueDate !== undefined && updates.dueDate !== null) {
+      cleanUpdates.dueDate = updates.dueDate;
+    }
+    if (updates.amount !== undefined) {
+      if (updates.amount !== null) {
+        cleanUpdates.amount = updates.amount;
+      } else {
+        cleanUpdates.amount = deleteField();
+      }
+    }
+    if (updates.currency !== undefined && updates.currency !== null) {
+      cleanUpdates.currency = updates.currency;
+    }
+    if (updates.status !== undefined && updates.status !== null) {
+      cleanUpdates.status = updates.status;
+    }
+    if (updates.isRecurring !== undefined) {
+      cleanUpdates.isRecurring = updates.isRecurring || false;
+    }
+    if (updates.recurringDay !== undefined) {
+      if (updates.recurringDay !== null) {
+        cleanUpdates.recurringDay = updates.recurringDay;
+      } else {
+        cleanUpdates.recurringDay = deleteField();
+      }
+    }
+    if (updates.notes !== undefined) {
+      if (updates.notes !== null && updates.notes.trim() !== '') {
+        cleanUpdates.notes = updates.notes.trim();
+      } else {
+        cleanUpdates.notes = deleteField();
+      }
+    }
+    
+    await updateDoc(docRef, cleanUpdates);
   },
 
   async delete(id: string): Promise<void> {
