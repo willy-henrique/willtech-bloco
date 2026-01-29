@@ -123,24 +123,41 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   // Credenciais
   const handleSaveCredential = async () => {
     try {
-      if (!credentialForm.title) {
+      if (!credentialForm.title || !credentialForm.title.trim()) {
         alert('Por favor, preencha o título da credencial.');
         return;
       }
       
+      // Remover campos undefined/null/vazios antes de salvar (exceto title que é obrigatório)
+      const cleanCredential: Partial<ProjectCredential> = {
+        projectId: project.id,
+        title: credentialForm.title.trim()
+      };
+      
+      // Adicionar apenas campos que têm valor
+      if (credentialForm.username && credentialForm.username.trim()) {
+        cleanCredential.username = credentialForm.username.trim();
+      }
+      if (credentialForm.email && credentialForm.email.trim()) {
+        cleanCredential.email = credentialForm.email.trim();
+      }
+      if (credentialForm.password && credentialForm.password.trim()) {
+        cleanCredential.password = credentialForm.password.trim();
+      }
+      if (credentialForm.url && credentialForm.url.trim()) {
+        cleanCredential.url = credentialForm.url.trim();
+      }
+      if (credentialForm.env && credentialForm.env.trim()) {
+        cleanCredential.env = credentialForm.env.trim();
+      }
+      if (credentialForm.notes && credentialForm.notes.trim()) {
+        cleanCredential.notes = credentialForm.notes.trim();
+      }
+      
       if (editingItem) {
-        await projectCredentialsService.update(editingItem, credentialForm);
+        await projectCredentialsService.update(editingItem, cleanCredential);
       } else {
-        await projectCredentialsService.create({
-          projectId: project.id,
-          title: credentialForm.title || '',
-          username: credentialForm.username,
-          email: credentialForm.email,
-          password: credentialForm.password,
-          url: credentialForm.url,
-          env: credentialForm.env,
-          notes: credentialForm.notes
-        } as Omit<ProjectCredential, 'id' | 'createdAt'>);
+        await projectCredentialsService.create(cleanCredential as Omit<ProjectCredential, 'id' | 'createdAt'>);
       }
       setCredentialForm({});
       setEditingItem(null);
@@ -148,7 +165,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       loadData();
     } catch (error: any) {
       console.error('Erro ao salvar credencial:', error);
-      alert(`Erro ao salvar credencial: ${error?.message || 'Erro desconhecido'}`);
+      const errorMessage = error?.message || 'Erro desconhecido';
+      alert(`Erro ao salvar credencial:\n\n${errorMessage}\n\nCertifique-se de que o título está preenchido.`);
     }
   };
 
@@ -434,12 +452,15 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                 
                 <input
                   type="text"
-                  placeholder="Título (ex: Admin, Dev, Staging)"
+                  placeholder="Título (ex: Admin, Dev, Staging) *"
                   value={credentialForm.title || ''}
                   onChange={(e) => setCredentialForm({ ...credentialForm, title: e.target.value })}
                   className="w-full mb-3 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all font-semibold"
                   required
                 />
+                <p className="text-xs text-neutral-500 mb-3 -mt-2">
+                  * Campo obrigatório. Os demais campos são opcionais.
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs font-bold text-neutral-400 mb-1.5 flex items-center gap-1.5">

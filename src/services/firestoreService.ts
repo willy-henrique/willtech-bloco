@@ -6,6 +6,7 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
+  deleteField,
   query, 
   where,
   orderBy,
@@ -371,16 +372,93 @@ export const projectCredentialsService = {
 
   async create(credential: Omit<ProjectCredential, 'id' | 'createdAt'>): Promise<string> {
     const docRef = doc(collection(db, COLLECTIONS.PROJECT_CREDENTIALS));
-    await setDoc(docRef, {
-      ...credential,
+    
+    // Remover campos undefined/null antes de salvar no Firestore
+    const cleanData: any = {
+      projectId: credential.projectId,
+      title: credential.title,
       createdAt: Timestamp.now()
-    });
+    };
+    
+    // Adicionar apenas campos que têm valor (não são undefined/null)
+    if (credential.username !== undefined && credential.username !== null && credential.username !== '') {
+      cleanData.username = credential.username;
+    }
+    if (credential.email !== undefined && credential.email !== null && credential.email !== '') {
+      cleanData.email = credential.email;
+    }
+    if (credential.password !== undefined && credential.password !== null && credential.password !== '') {
+      cleanData.password = credential.password;
+    }
+    if (credential.url !== undefined && credential.url !== null && credential.url !== '') {
+      cleanData.url = credential.url;
+    }
+    if (credential.env !== undefined && credential.env !== null && credential.env !== '') {
+      cleanData.env = credential.env;
+    }
+    if (credential.notes !== undefined && credential.notes !== null && credential.notes !== '') {
+      cleanData.notes = credential.notes;
+    }
+    
+    await setDoc(docRef, cleanData);
     return docRef.id;
   },
 
   async update(id: string, updates: Partial<ProjectCredential>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.PROJECT_CREDENTIALS, id);
-    await updateDoc(docRef, updates as any);
+    
+    // Remover campos undefined/null antes de atualizar no Firestore
+    const cleanUpdates: any = {};
+    
+    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
+      cleanUpdates.title = updates.title.trim();
+    }
+    if (updates.username !== undefined) {
+      if (updates.username !== null && updates.username.trim() !== '') {
+        cleanUpdates.username = updates.username.trim();
+      } else {
+        // Se for string vazia ou null, remover o campo do documento
+        cleanUpdates.username = deleteField();
+      }
+    }
+    if (updates.email !== undefined) {
+      if (updates.email !== null && updates.email.trim() !== '') {
+        cleanUpdates.email = updates.email.trim();
+      } else {
+        cleanUpdates.email = deleteField();
+      }
+    }
+    if (updates.password !== undefined) {
+      if (updates.password !== null && updates.password.trim() !== '') {
+        cleanUpdates.password = updates.password.trim();
+      } else {
+        cleanUpdates.password = deleteField();
+      }
+    }
+    if (updates.url !== undefined) {
+      if (updates.url !== null && updates.url.trim() !== '') {
+        cleanUpdates.url = updates.url.trim();
+      } else {
+        cleanUpdates.url = deleteField();
+      }
+    }
+    if (updates.env !== undefined) {
+      if (updates.env !== null && updates.env.trim() !== '') {
+        cleanUpdates.env = updates.env.trim();
+      } else {
+        cleanUpdates.env = deleteField();
+      }
+    }
+    if (updates.notes !== undefined) {
+      if (updates.notes !== null && updates.notes.trim() !== '') {
+        cleanUpdates.notes = updates.notes.trim();
+      } else {
+        cleanUpdates.notes = deleteField();
+      }
+    }
+    
+    await updateDoc(docRef, cleanUpdates);
   },
 
   async delete(id: string): Promise<void> {
