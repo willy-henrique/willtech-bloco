@@ -275,20 +275,27 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   // Notas
   const handleSaveNote = async () => {
     try {
-      if (!noteForm.title || !noteForm.content) {
+      if (!noteForm.title || !noteForm.title.trim() || !noteForm.content || !noteForm.content.trim()) {
         alert('Por favor, preencha o título e o conteúdo da nota.');
         return;
       }
       
+      // Remover campos undefined/null/vazios antes de salvar (exceto title e content que são obrigatórios)
+      const cleanNote: Partial<ProjectNote> = {
+        projectId: project.id,
+        title: noteForm.title.trim(),
+        content: noteForm.content.trim()
+      };
+      
+      // Adicionar categoria apenas se tiver valor
+      if (noteForm.category && noteForm.category.trim()) {
+        cleanNote.category = noteForm.category.trim();
+      }
+      
       if (editingItem) {
-        await projectNotesService.update(editingItem, noteForm);
+        await projectNotesService.update(editingItem, cleanNote);
       } else {
-        await projectNotesService.create({
-          projectId: project.id,
-          title: noteForm.title || '',
-          content: noteForm.content || '',
-          category: noteForm.category
-        } as Omit<ProjectNote, 'id' | 'createdAt' | 'updatedAt'>);
+        await projectNotesService.create(cleanNote as Omit<ProjectNote, 'id' | 'createdAt' | 'updatedAt'>);
       }
       setNoteForm({});
       setEditingItem(null);

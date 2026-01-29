@@ -550,20 +550,50 @@ export const projectNotesService = {
 
   async create(note: Omit<ProjectNote, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const docRef = doc(collection(db, COLLECTIONS.PROJECT_NOTES));
-    await setDoc(docRef, {
-      ...note,
+    
+    // Remover campos undefined/null antes de salvar no Firestore
+    const cleanData: any = {
+      projectId: note.projectId,
+      title: note.title,
+      content: note.content,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
-    });
+    };
+    
+    // Adicionar categoria apenas se tiver valor
+    if (note.category !== undefined && note.category !== null && note.category.trim() !== '') {
+      cleanData.category = note.category.trim();
+    }
+    
+    await setDoc(docRef, cleanData);
     return docRef.id;
   },
 
   async update(id: string, updates: Partial<ProjectNote>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.PROJECT_NOTES, id);
-    await updateDoc(docRef, {
-      ...updates,
+    
+    // Remover campos undefined/null antes de atualizar no Firestore
+    const cleanUpdates: any = {
       updatedAt: Timestamp.now()
-    } as any);
+    };
+    
+    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
+      cleanUpdates.title = updates.title.trim();
+    }
+    if (updates.content !== undefined && updates.content !== null && updates.content.trim() !== '') {
+      cleanUpdates.content = updates.content.trim();
+    }
+    if (updates.category !== undefined) {
+      if (updates.category !== null && updates.category.trim() !== '') {
+        cleanUpdates.category = updates.category.trim();
+      } else {
+        // Se for string vazia ou null, remover o campo do documento
+        cleanUpdates.category = deleteField();
+      }
+    }
+    
+    await updateDoc(docRef, cleanUpdates);
   },
 
   async delete(id: string): Promise<void> {
