@@ -105,3 +105,46 @@ export interface ProjectDetail {
   createdAt: number;
   updatedAt?: number;
 }
+
+// Finance Hub
+export type FinanceTransactionType = 'income' | 'expense';
+export type FinanceTransactionStatus = 'pending' | 'paid' | 'overdue' | 'received';
+export type FinanceCategory =
+  | 'Aluguel'
+  | 'Energia'
+  | 'Mercado'
+  | 'SaaS Subscriptions'
+  | 'Receitas de Projetos'
+  | 'Hardware'
+  | 'Software'
+  | 'Outros';
+
+export interface FinanceTransaction {
+  id: string;
+  description: string;
+  category: FinanceCategory;
+  dueDate: string; // YYYY-MM-DD
+  amount: number;
+  currency: string;
+  type: FinanceTransactionType;
+  status: FinanceTransactionStatus;
+  context: 'pessoal' | 'business'; // Pessoal ou Business/WillTech
+  createdAt: number;
+  paidAt?: number;
+}
+
+export interface FinanceGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  currency: string;
+  deadline?: string;
+  createdAt: number;
+}
+
+export interface CashFlowPoint {
+  month: string;
+  inflows: number;
+  outflows: number;
+}

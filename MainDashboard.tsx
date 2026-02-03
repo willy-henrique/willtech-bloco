@@ -10,15 +10,59 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search } from 'lucide-react';
+import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign } from 'lucide-react';
 import { Project } from './types';
+import FinanceHub from './components/FinanceHub';
 
 const MainDashboard: React.FC = () => {
   const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
+  const [mainView, setMainView] = useState<'dashboard' | 'finance'>('dashboard');
   const [mobileTab, setMobileTab] = useState<'projects' | 'tasks' | 'vault' | 'config'>('projects');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  // Se Finance Hub está ativo, mostrar apenas o Finance Hub
+  if (mainView === 'finance') {
+    return (
+      <div className="flex h-screen bg-black overflow-hidden font-sans">
+        <aside className="hidden lg:flex w-20 flex-col items-center py-8 border-r border-neutral-800 bg-neutral-950 z-20">
+          <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center mb-10 border border-neutral-800">
+            <Shield className="text-neutral-500" size={24} />
+          </div>
+          <nav className="flex flex-col gap-8 flex-1">
+            <button
+              onClick={() => setMainView('dashboard')}
+              className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"
+              title="Dashboard"
+            >
+              <LayoutGrid size={20} />
+            </button>
+            <button className="p-3 rounded-xl bg-neutral-900 text-lime-500 border border-neutral-800" title="Finance Hub">
+              <DollarSign size={20} />
+            </button>
+            <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><BarChart3 size={20} /></button>
+            <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Bell size={20} /></button>
+            <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Settings size={20} /></button>
+          </nav>
+          <button className="p-3 rounded-xl text-neutral-700 hover:text-red-400 mt-auto"><LogOut size={20} /></button>
+        </aside>
+        <main className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-950">
+          <header className="px-4 py-4 md:px-8 md:py-6 border-b border-neutral-900 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
+            <div className="space-y-0.5">
+              <h1 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                Will Tech <span className="text-[10px] bg-lime-500/10 text-lime-500 px-2 py-0.5 rounded-full border border-lime-500/20">OPS</span>
+              </h1>
+              <p className="text-[10px] md:text-xs text-neutral-500 font-mono font-bold uppercase">Finance Hub • Controle Financeiro</p>
+            </div>
+          </header>
+          <div className="flex-1 overflow-y-auto">
+            <FinanceHub />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   // Se um projeto foi selecionado, mostrar detalhes
   if (selectedProject) {
@@ -39,7 +83,16 @@ const MainDashboard: React.FC = () => {
         </div>
         
         <nav className="flex flex-col gap-8 flex-1">
-          <button className="p-3 rounded-xl bg-neutral-900 text-lime-500 border border-neutral-800"><LayoutGrid size={20} /></button>
+          <button className="p-3 rounded-xl bg-neutral-900 text-lime-500 border border-neutral-800" title="Dashboard">
+            <LayoutGrid size={20} />
+          </button>
+          <button
+            onClick={() => setMainView('finance')}
+            className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"
+            title="Finance Hub"
+          >
+            <DollarSign size={20} />
+          </button>
           <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><BarChart3 size={20} /></button>
           <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Bell size={20} /></button>
           <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Settings size={20} /></button>
@@ -196,8 +249,16 @@ const MainDashboard: React.FC = () => {
           <button 
             onClick={() => setMobileTab('projects')}
             className={`p-3 rounded-xl transition-all ${mobileTab === 'projects' ? 'bg-lime-500 text-black shadow-lg shadow-lime-500/20' : 'text-neutral-500'}`}
+            title="Dashboard"
           >
             <LayoutGrid size={20} />
+          </button>
+          <button 
+            onClick={() => setMainView('finance')}
+            className="p-3 rounded-xl text-neutral-500 hover:bg-lime-500/20 hover:text-lime-400 transition-all"
+            title="Finance Hub"
+          >
+            <DollarSign size={20} />
           </button>
           <button 
             onClick={() => setMobileTab('tasks')}
@@ -205,13 +266,6 @@ const MainDashboard: React.FC = () => {
           >
             <BarChart3 size={20} />
           </button>
-          
-          <button 
-            className="w-12 h-12 rounded-xl bg-neutral-900 text-lime-500 flex items-center justify-center border border-neutral-800"
-          >
-             <Plus size={24} />
-          </button>
-
           <button 
             onClick={() => setMobileTab('vault')}
             className={`p-3 rounded-xl transition-all ${mobileTab === 'vault' ? 'bg-lime-500 text-black shadow-lg shadow-lime-500/20' : 'text-neutral-500'}`}
