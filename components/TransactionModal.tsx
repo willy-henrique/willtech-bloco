@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save } from 'lucide-react';
+import { X, Save, Trash2 } from 'lucide-react';
 import {
   FinanceTransaction,
   FinanceCategory,
@@ -12,6 +12,7 @@ interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Omit<FinanceTransaction, 'id' | 'createdAt'>) => void;
+  onDelete?: (id: string) => void;
   transaction: FinanceTransaction | null;
 }
 
@@ -30,6 +31,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onDelete,
   transaction,
 }) => {
   const [description, setDescription] = useState('');
@@ -207,6 +209,20 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                   <Save size={18} />
                   Salvar
                 </button>
+                {transaction && onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Tem certeza que deseja excluir esta transação?')) {
+                        onDelete(transaction.id);
+                        onClose();
+                      }
+                    }}
+                    className="px-4 py-3 bg-red-500/20 text-red-400 rounded-xl font-bold hover:bg-red-500/30 transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={onClose}
