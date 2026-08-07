@@ -41,9 +41,23 @@ const EisenhowerMatrix: React.FC = () => {
     }
   };
 
-  const Quadrant = ({ title, tasks, icon: Icon, colorClass, subtitle, priority }: any) => {
+  const Quadrant = ({
+    title,
+    tasks: quadrantTasks,
+    icon: Icon,
+    colorClass,
+    subtitle,
+    priority,
+  }: {
+    title: string;
+    tasks: Task[];
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+    colorClass: string;
+    subtitle: string;
+    priority: TaskPriority;
+  }) => {
     const isEditing = editingQuadrant === priority;
-    const taskCount = tasks.length;
+    const taskCount = quadrantTasks.length;
 
     return (
       <div className={`flex flex-col h-full bg-gradient-to-br from-neutral-900/60 to-neutral-950/60 border-2 border-neutral-800/60 rounded-2xl overflow-hidden shadow-lg`}>
@@ -120,7 +134,7 @@ const EisenhowerMatrix: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-64 custom-scrollbar">
           <AnimatePresence>
-            {tasks.map((task: Task) => (
+            {quadrantTasks.map((task: Task) => (
               <motion.div
                 layout
                 key={task.id}
@@ -155,7 +169,7 @@ const EisenhowerMatrix: React.FC = () => {
             ))}
           </AnimatePresence>
           
-          {tasks.length === 0 && !isEditing && (
+          {quadrantTasks.length === 0 && !isEditing && (
             <div className="h-full flex flex-col items-center justify-center text-neutral-600 text-[10px] uppercase font-bold py-12">
               <div className="mb-2">ALL CLEAR</div>
               <button
@@ -168,7 +182,7 @@ const EisenhowerMatrix: React.FC = () => {
             </div>
           )}
           
-          {tasks.length > 0 && !isEditing && (
+          {quadrantTasks.length > 0 && !isEditing && (
             <button
               onClick={() => setEditingQuadrant(priority)}
               className="w-full mt-2 px-3 py-2 bg-neutral-800/50 hover:bg-neutral-800 border border-neutral-700/50 hover:border-lime-500/50 text-neutral-400 hover:text-lime-400 rounded-lg transition-all flex items-center justify-center gap-2 text-xs font-bold"

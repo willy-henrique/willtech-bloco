@@ -1,20 +1,110 @@
 @import "tailwindcss";
 
-/* Custom scrollbar */
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #efeee9;
+  --border: #e4e2db;
+  --muted: #6b6a64;
+  --text: #1c1b19;
+  --text-secondary: #4a4944;
+  --primary: #2f6f5e;
+  --primary-soft: rgba(47, 111, 94, 0.12);
+  --danger: #c44b3c;
+  --success: #2f6f5e;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html.dark,
+[data-theme='dark'] {
+  --bg: #141414;
+  --surface: #1c1c1c;
+  --surface-2: #242424;
+  --border: #2e2e2e;
+  --muted: #9a9a94;
+  --text: #f2f1ec;
+  --text-secondary: #c4c3bd;
+  --primary: #6fbfa8;
+  --primary-soft: rgba(111, 191, 168, 0.14);
+  --danger: #e07a6c;
+  --success: #6fbfa8;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, var(--primary-soft), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(196, 75, 60, 0.06), transparent 50%),
+      var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #111;
+  background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3fcf8e;
+  background: var(--border);
   border-radius: 10px;
 }
 
-/* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -24,41 +114,36 @@
   display: none;
 }
 
-/* Fonts */
-body {
-  font-family: 'Inter', sans-serif;
+.app-shell {
+  min-height: 100dvh;
+  padding-top: var(--safe-top);
 }
 
-.font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+.section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-/* Focus visible improvements */
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #84cc16;
-  outline-offset: 2px;
+.meta-text {
+  font-size: var(--font-size-xs);
+  color: var(--muted);
 }
 
-/* Better code block styling */
-pre {
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  line-height: 1.6;
-}
-
-/* Animation for new items */
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -67,5 +152,10 @@ pre {
 }
 
 .animate-slide-in {
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.25s ease-out;
+}
+
+/* Legacy OPS accents still used in demoted tools */
+.willtech-green {
+  color: #3fcf8e;
 }

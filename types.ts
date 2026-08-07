@@ -1,4 +1,3 @@
-
 // ProjectId agora é uma string para permitir projetos dinâmicos
 export type ProjectId = string;
 
@@ -19,6 +18,7 @@ export interface VaultItem {
   createdAt: number;
 }
 
+/** Task with optional personal-assistant fields (backward compatible). */
 export interface Task {
   id: string;
   projectId: ProjectId;
@@ -26,17 +26,28 @@ export interface Task {
   priority: TaskPriority;
   isCompleted: boolean;
   createdAt: number;
+  /** Optional display title; falls back to description */
+  title?: string;
+  /** When true (or status === 'inbox'), item lives in Inbox */
+  inbox?: boolean;
+  status?: 'inbox' | 'active' | 'completed' | 'archived';
+  dueAt?: number | null;
+  reminderAt?: number | null;
+  scheduledAt?: number | null;
+  updatedAt?: number;
+  archived?: boolean;
 }
 
 export interface Project {
-  id: string; // ID único do projeto
+  id: string;
   name: string;
   type: string;
   status: 'Active' | 'Maintenance' | 'Legacy';
   progress: number;
   color: string;
   createdAt?: number;
-  stack?: string; // Stack tecnológico (ex: "React/Node", "PHP/SQL")
+  stack?: string;
+  description?: string;
 }
 
 export interface Snippet {
@@ -55,7 +66,6 @@ export interface ContractDeadline {
   type: 'Contract' | 'Sprint' | 'Payment';
 }
 
-// Detalhes do Projeto - Bloco de Notas
 export interface ProjectCredential {
   id: string;
   projectId: string;
@@ -64,7 +74,7 @@ export interface ProjectCredential {
   email?: string;
   password?: string;
   url?: string;
-  env?: string; // Conteúdo do arquivo .env
+  env?: string;
   notes?: string;
   createdAt: number;
 }
@@ -73,15 +83,15 @@ export interface ProjectPayment {
   id: string;
   projectId: string;
   title: string;
-  dueDate: string; // YYYY-MM-DD
+  dueDate: string;
   amount?: number;
   currency?: string;
   status: 'pending' | 'paid' | 'overdue';
-  isRecurring?: boolean; // Se é recorrente (mensal)
-  recurringDay?: number; // Dia do mês (ex: 4 para dia 04)
+  isRecurring?: boolean;
+  recurringDay?: number;
   notes?: string;
   createdAt: number;
-  paidAt?: number; // Data em que foi marcado como pago
+  paidAt?: number;
 }
 
 export interface ProjectNote {
@@ -106,7 +116,6 @@ export interface ProjectDetail {
   updatedAt?: number;
 }
 
-// Finance Hub
 export type FinanceTransactionType = 'income' | 'expense';
 export type FinanceTransactionStatus = 'pending' | 'paid' | 'overdue' | 'received';
 export type FinanceCategory =
@@ -123,12 +132,12 @@ export interface FinanceTransaction {
   id: string;
   description: string;
   category: FinanceCategory;
-  dueDate: string; // YYYY-MM-DD
+  dueDate: string;
   amount: number;
   currency: string;
   type: FinanceTransactionType;
   status: FinanceTransactionStatus;
-  context: 'pessoal' | 'business'; // Pessoal ou Business/WillTech
+  context: 'pessoal' | 'business';
   createdAt: number;
   paidAt?: number;
 }
@@ -148,3 +157,5 @@ export interface CashFlowPoint {
   inflows: number;
   outflows: number;
 }
+
+export type { Item, ItemType, ItemStatus, Note, CalendarEvent, CalendarEventKind } from './types/item';
