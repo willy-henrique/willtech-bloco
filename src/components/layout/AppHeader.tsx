@@ -1,4 +1,4 @@
-import { Bell, Command, Plus, Search } from 'lucide-react';
+import { Bell, Plus, Search } from 'lucide-react';
 import { formatDate, greetingForHour } from '../../lib/dates';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
@@ -61,8 +61,8 @@ export function AppHeader({
           onClick={onSearch}
           className="flex h-11 w-full items-center gap-2 rounded-[var(--radius-md)] border border-border bg-bg-elevated px-3 text-left text-sm text-text-subtle transition hover:border-border-strong"
         >
-          <Command className="h-4 w-4" aria-hidden />
-          <span className="flex-1">Buscar ou executar comando…</span>
+          <Search className="h-4 w-4" aria-hidden />
+          <span className="flex-1">Buscar notas, tarefas e lembretes…</span>
           <Badge>⌘K</Badge>
         </button>
       </div>

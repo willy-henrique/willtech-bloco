@@ -7,6 +7,7 @@ import { projectProgress, goalProgress } from '../../lib/progress';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { PRIORITY_LABELS } from '../../constants/defaults';
+import { QuickCapture } from './QuickCapture';
 
 function Stat({
   label,
@@ -66,6 +67,8 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 px-4 py-4 md:px-6">
+      <QuickCapture />
+
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-6">
         <Stat label="Pendentes" value={summary.pending.length} />
         <Stat label="Para hoje" value={summary.todayTasks.length} tone="accent" />

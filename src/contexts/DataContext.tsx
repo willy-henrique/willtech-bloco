@@ -67,6 +67,9 @@ interface DataContextValue {
   createEvent: (data: Partial<CalendarEvent> & { title: string; date: string }) => CalendarEvent;
   updateEvent: (id: string, updates: Partial<CalendarEvent>) => CalendarEvent | null;
   deleteEvent: (id: string) => boolean;
+  createReminder: (data: { title: string; dueAt?: number }) => Reminder;
+  completeReminder: (id: string) => Reminder | null;
+  deleteReminder: (id: string) => boolean;
   createTransaction: (data: Partial<Transaction> & { description: string; amount: number; type: Transaction['type']; dueDate: string }) => Transaction;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Transaction | null;
   deleteTransaction: (id: string) => boolean;
@@ -449,6 +452,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deleteEvent: (id) => {
         const ok = Boolean(eventsRepo?.softDelete(id));
         if (ok) setEvents(eventsRepo!.list() as CalendarEvent[]);
+        return ok;
+      },
+      createReminder: (data) => {
+        ensureReady();
+        const reminder = remindersRepo!.create({
+          title: data.title,
+          dueAt: data.dueAt ?? Date.now() + 60 * 60 * 1000,
+          relatedId: null,
+          completed: false,
+        }) as Reminder;
+        setReminders(remindersRepo!.list() as Reminder[]);
+        audit('create', 'reminder', reminder.id);
+        return reminder;
+      },
+      completeReminder: (id) => {
+        const reminder = remindersRepo?.update(id, { completed: true }) as Reminder | null;
+        if (reminder) setReminders(remindersRepo!.list() as Reminder[]);
+        return reminder;
+      },
+      deleteReminder: (id) => {
+        const ok = Boolean(remindersRepo?.softDelete(id));
+        if (ok) setReminders(remindersRepo!.list() as Reminder[]);
         return ok;
       },
       createTransaction: (data) => {
