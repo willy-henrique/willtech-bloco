@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { addDays, formatDate, startOfWeek, toDateKey } from '../../lib/dates';
 import { useData } from '../../contexts/DataContext';
@@ -109,9 +109,15 @@ export function CalendarPage() {
     setOpen(true);
   };
 
-  const save = () => {
+  const save = (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    const formElement = event?.currentTarget;
+    const domTitle = formElement
+      ? new FormData(formElement).get('title')?.toString() || form.title
+      : form.title;
     const parsed = eventFormSchema.safeParse({
       ...form,
+      title: domTitle,
       startTime: form.startTime || null,
       endTime: form.endTime || null,
       meetingUrl: form.meetingUrl || '',
@@ -122,6 +128,7 @@ export function CalendarPage() {
         next[String(issue.path[0])] = issue.message;
       });
       setErrors(next);
+      toast.error('Revise os campos', next.title || next.date || next.meetingUrl || 'Dados inválidos');
       return;
     }
     if (editing) {
@@ -309,38 +316,85 @@ export function CalendarPage() {
         footer={
           <div className="flex justify-between gap-2">
             {editing ? (
-              <Button variant="danger" onClick={() => setDeleteId(editing.id)}>
+              <Button type="button" variant="danger" onClick={() => setDeleteId(editing.id)}>
                 Excluir
               </Button>
             ) : (
               <span />
             )}
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setOpen(false)}>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={save}>Salvar</Button>
+              <Button type="submit" form="event-form">
+                Salvar
+              </Button>
             </div>
           </div>
         }
       >
-        <div className="space-y-3">
-          <Input label="Título" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} error={errors.title} required />
-          <Input label="Data" type="date" value={form.date} onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))} error={errors.date} required />
+        <form id="event-form" className="space-y-3" onSubmit={save}>
+          <Input
+            label="Título"
+            name="title"
+            value={form.title}
+            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+            error={errors.title}
+            required
+          />
+          <Input
+            label="Data"
+            name="date"
+            type="date"
+            value={form.date}
+            onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+            error={errors.date}
+            required
+          />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input label="Início" type="time" value={form.startTime} onChange={(e) => setForm((p) => ({ ...p, startTime: e.target.value, allDay: !e.target.value }))} />
-            <Input label="Fim" type="time" value={form.endTime} onChange={(e) => setForm((p) => ({ ...p, endTime: e.target.value }))} />
+            <Input
+              label="Início"
+              name="startTime"
+              type="time"
+              value={form.startTime}
+              onChange={(e) => setForm((p) => ({ ...p, startTime: e.target.value, allDay: !e.target.value }))}
+            />
+            <Input
+              label="Fim"
+              name="endTime"
+              type="time"
+              value={form.endTime}
+              onChange={(e) => setForm((p) => ({ ...p, endTime: e.target.value }))}
+            />
           </div>
           <Select
             label="Categoria"
+            name="category"
             value={form.category}
             onChange={(e) => setForm((p) => ({ ...p, category: e.target.value as EventCategory }))}
             options={Object.entries(EVENT_CATEGORY_LABELS).map(([value, label]) => ({ value, label }))}
           />
-          <Input label="Local" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} />
-          <Input label="Link da reunião" type="url" value={form.meetingUrl} onChange={(e) => setForm((p) => ({ ...p, meetingUrl: e.target.value }))} error={errors.meetingUrl} />
-          <Textarea label="Observações" value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} />
-        </div>
+          <Input
+            label="Local"
+            name="location"
+            value={form.location}
+            onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
+          />
+          <Input
+            label="Link da reunião"
+            name="meetingUrl"
+            type="url"
+            value={form.meetingUrl}
+            onChange={(e) => setForm((p) => ({ ...p, meetingUrl: e.target.value }))}
+            error={errors.meetingUrl}
+          />
+          <Textarea
+            label="Observações"
+            name="notes"
+            value={form.notes}
+            onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+          />
+        </form>
       </Modal>
 
       <ConfirmDialog

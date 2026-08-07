@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CalendarPlus,
@@ -32,6 +32,22 @@ const OPTIONS: { kind: Exclude<CreateKind, null>; label: string; icon: typeof Ch
   { kind: 'habit', label: 'Novo hábito', icon: Target },
 ];
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : true,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+
+  return isDesktop;
+}
+
 export function QuickCreate({ open, onClose }: QuickCreateProps) {
   const navigate = useNavigate();
   const toast = useToast();
@@ -40,13 +56,15 @@ export function QuickCreate({ open, onClose }: QuickCreateProps) {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+  const [titleError, setTitleError] = useState('');
+  const isDesktop = useIsDesktop();
 
   const reset = () => {
     setKind(null);
     setTitle('');
     setAmount('');
     setLoading(false);
+    setTitleError('');
   };
 
   const handleClose = () => {
@@ -54,12 +72,18 @@ export function QuickCreate({ open, onClose }: QuickCreateProps) {
     onClose();
   };
 
-  const submit = async () => {
-    if (!kind || !title.trim()) return;
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
+    if (!kind) return;
+    if (!title.trim()) {
+      setTitleError('Informe um título');
+      return;
+    }
+    setTitleError('');
     setLoading(true);
     try {
       if (kind === 'task') {
-        createTask({ title: title.trim(), date: toDateKey() });
+        createTask({ title: title.trim(), date: toDateKey(), dueDate: toDateKey() });
         navigate('/tarefas');
       } else if (kind === 'event') {
         createEvent({ title: title.trim(), date: toDateKey(), allDay: true, category: 'personal' });
@@ -114,17 +138,23 @@ export function QuickCreate({ open, onClose }: QuickCreateProps) {
   );
 
   const form = (
-    <div className="space-y-3">
+    <form className="space-y-3" onSubmit={submit}>
       <Input
         label="Título"
+        name="title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        onChange={(event) => {
+          setTitle(event.target.value);
+          if (event.target.value.trim()) setTitleError('');
+        }}
+        error={titleError}
         required
         autoFocus
       />
       {kind === 'transaction' ? (
         <Input
           label="Valor (R$)"
+          name="amount"
           inputMode="decimal"
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
@@ -132,14 +162,14 @@ export function QuickCreate({ open, onClose }: QuickCreateProps) {
         />
       ) : null}
       <div className="flex justify-end gap-2">
-        <Button variant="ghost" onClick={() => setKind(null)}>
+        <Button type="button" variant="ghost" onClick={() => setKind(null)}>
           Voltar
         </Button>
-        <Button onClick={() => void submit()} loading={loading}>
+        <Button type="submit" loading={loading}>
           Criar
         </Button>
       </div>
-    </div>
+    </form>
   );
 
   if (isDesktop) {
