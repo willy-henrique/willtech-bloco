@@ -63,17 +63,35 @@ export const tasksService = {
   // Criar nova tarefa
   async create(task: Omit<Task, 'id'>): Promise<string> {
     const docRef = doc(collection(db, COLLECTIONS.TASKS));
-    await setDoc(docRef, {
-      ...task,
-      createdAt: task.createdAt ? Timestamp.fromMillis(task.createdAt) : Timestamp.now()
-    });
+    const payload: Record<string, unknown> = {
+      projectId: task.projectId,
+      description: task.description,
+      priority: task.priority,
+      isCompleted: task.isCompleted ?? false,
+      createdAt: task.createdAt ? Timestamp.fromMillis(task.createdAt) : Timestamp.now(),
+    };
+    if (task.title) payload.title = task.title;
+    if (task.inbox !== undefined) payload.inbox = task.inbox;
+    if (task.status) payload.status = task.status;
+    if (task.dueAt != null) payload.dueAt = task.dueAt;
+    if (task.reminderAt != null) payload.reminderAt = task.reminderAt;
+    if (task.scheduledAt != null) payload.scheduledAt = task.scheduledAt;
+    if (task.archived !== undefined) payload.archived = task.archived;
+    if (task.updatedAt != null) payload.updatedAt = task.updatedAt;
+    await setDoc(docRef, payload);
     return docRef.id;
   },
 
   // Atualizar tarefa
   async update(id: string, updates: Partial<Task>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.TASKS, id);
-    await updateDoc(docRef, updates as any);
+    const clean: Record<string, unknown> = { updatedAt: Date.now() };
+    (Object.keys(updates) as (keyof Task)[]).forEach((key) => {
+      if (key === 'id') return;
+      const value = updates[key];
+      if (value !== undefined) clean[key] = value;
+    });
+    await updateDoc(docRef, clean as never);
   },
 
   // Deletar tarefa

@@ -288,7 +288,9 @@ const MainDashboard: React.FC = () => {
           setIsProjectModalOpen(false);
           setEditingProject(null);
         }}
-        onSave={addProject}
+        onSave={async (project) => {
+          await addProject(project);
+        }}
         onUpdate={updateProject}
         onDelete={deleteProject}
         project={editingProject}

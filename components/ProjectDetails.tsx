@@ -677,17 +677,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                               </span>
                             </div>
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
                                 copyToClipboard(cred.env!);
-                                // Feedback visual temporário
-                                const btn = event?.currentTarget;
-                                if (btn) {
-                                  const originalText = btn.innerHTML;
-                                  btn.innerHTML = '<span class="text-green-400">✓ Copiado!</span>';
-                                  setTimeout(() => {
-                                    btn.innerHTML = originalText;
-                                  }, 2000);
-                                }
+                                const btn = e.currentTarget;
+                                const originalText = btn.innerHTML;
+                                btn.innerHTML = '<span class="text-green-400">✓ Copiado!</span>';
+                                setTimeout(() => {
+                                  btn.innerHTML = originalText;
+                                }, 2000);
                               }}
                               className="px-3 py-1.5 bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 hover:text-lime-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-lime-500/20"
                             >
