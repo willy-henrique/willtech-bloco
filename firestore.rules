@@ -1,18 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir leitura/escrita para todas as coleções
-    // ⚠️ ATENÇÃO: Estas regras permitem acesso total!
-    // Use apenas para desenvolvimento ou configure autenticação para produção
-    
-    match /{document=**} {
-      allow read, write: if true;
+    function signedIn() {
+      return request.auth != null;
     }
-    
-    // Alternativa mais segura (descomente para usar):
-    // Requer autenticação para todas as operações
-    // match /{document=**} {
-    //   allow read, write: if request.auth != null;
-    // }
+
+    function isOwner() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function willBeOwner() {
+      return signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /{collection}/{docId} {
+      allow read: if isOwner();
+      allow create: if willBeOwner();
+      allow update, delete: if isOwner() && willBeOwner();
+    }
   }
 }
