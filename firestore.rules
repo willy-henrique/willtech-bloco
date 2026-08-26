@@ -1,18 +1,38 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir leitura/escrita para todas as coleções
-    // ⚠️ ATENÇÃO: Estas regras permitem acesso total!
-    // Use apenas para desenvolvimento ou configure autenticação para produção
-    
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Travado no e-mail, e nao no UID, de proposito: vale tanto para a
+    // conta e-mail/senha que ja existe quanto para um login futuro pelo
+    // Google com o mesmo endereco. O Firebase garante um unico dono por
+    // e-mail, entao ninguem consegue registrar este endereco de novo.
+    function ownerEmail() { return 'willydev01@gmail.com'; }
+
+    function isOwner() {
+      return request.auth != null && request.auth.token.email == ownerEmail();
     }
-    
-    // Alternativa mais segura (descomente para usar):
-    // Requer autenticação para todas as operações
-    // match /{document=**} {
-    //   allow read, write: if request.auth != null;
-    // }
+
+    // ---- Colecoes humanas: so o dono le e escreve ----
+    match /projects/{docId}            { allow read, write: if isOwner(); }
+    match /tasks/{docId}               { allow read, write: if isOwner(); }
+    match /snippets/{docId}            { allow read, write: if isOwner(); }
+    match /vault/{docId}               { allow read, write: if isOwner(); }
+    match /project_credentials/{docId} { allow read, write: if isOwner(); }
+    match /project_payments/{docId}    { allow read, write: if isOwner(); }
+    match /project_notes/{docId}       { allow read, write: if isOwner(); }
+    match /project_details/{docId}     { allow read, write: if isOwner(); }
+
+    // ---- Colecoes de maquina ----
+    // O dono le no painel; nenhum cliente escreve.
+    // O coletor e o bot usam Admin SDK, que ignora rules.
+    match /project_signals/{docId} { allow read: if isOwner(); allow write: if false; }
+    match /project_events/{docId}  { allow read: if isOwner(); allow write: if false; }
+    match /project_inbox/{docId}   { allow read: if isOwner(); allow write: if false; }
+    match /capture_inbox/{docId}   { allow read: if isOwner(); allow write: if false; }
+    match /sync_runs/{docId}       { allow read: if isOwner(); allow write: if false; }
+
+    // ---- Qualquer outro caminho: negado ----
+    match /{document=**} { allow read, write: if false; }
   }
 }

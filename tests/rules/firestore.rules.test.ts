@@ -11,14 +11,13 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const RULES = readFileSync('firestore.rules', 'utf8');
 
-const uidMatch = RULES.match(/function ownerUid\(\) \{ return '([^']+)'; \}/);
-if (!uidMatch) {
+const emailMatch = RULES.match(/function ownerEmail\(\) \{ return '([^']+)'; \}/);
+if (!emailMatch) {
   throw new Error(
-    "firestore.rules precisa conter exatamente: function ownerUid() { return '<UID>'; }"
+    "firestore.rules precisa conter exatamente: function ownerEmail() { return '<email>'; }"
   );
 }
-const OWNER_UID = uidMatch[1];
-const INTRUDER_UID = 'intruso-nao-autorizado';
+const OWNER_EMAIL = emailMatch[1];
 
 const HUMAN_COLLECTIONS = [
   'projects', 'tasks', 'snippets', 'vault',
@@ -31,6 +30,17 @@ const MACHINE_COLLECTIONS = [
 
 let testEnv: RulesTestEnvironment;
 
+/** O dono, autenticado com o e-mail que as rules exigem. */
+const dono = () =>
+  testEnv.authenticatedContext('uid-do-dono', { email: OWNER_EMAIL }).firestore();
+
+/** Alguém logado de verdade, mas com outro e-mail. */
+const intruso = () =>
+  testEnv.authenticatedContext('uid-do-intruso', { email: 'intruso@gmail.com' }).firestore();
+
+/** Ninguém logado. */
+const anonimo = () => testEnv.unauthenticatedContext().firestore();
+
 beforeAll(async () => {
   testEnv = await initializeTestEnvironment({
     projectId: 'willtech-rules-test',
@@ -41,56 +51,56 @@ beforeAll(async () => {
 afterAll(async () => { await testEnv.cleanup(); });
 beforeEach(async () => { await testEnv.clearFirestore(); });
 
-describe('o UID do dono', () => {
+describe('o e-mail do dono', () => {
   it('não é um placeholder', () => {
-    expect(OWNER_UID).toMatch(/^[A-Za-z0-9]{20,}$/);
+    expect(OWNER_EMAIL).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
   });
 });
 
 describe('coleções humanas', () => {
   it.each(HUMAN_COLLECTIONS)('nega leitura anônima em %s', async (col) => {
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, col, 'x')));
+    await assertFails(getDoc(doc(anonimo(), col, 'x')));
   });
 
   it.each(HUMAN_COLLECTIONS)('nega escrita anônima em %s', async (col) => {
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(setDoc(doc(db, col, 'x'), { a: 1 }));
+    await assertFails(setDoc(doc(anonimo(), col, 'x'), { a: 1 }));
   });
 
-  it.each(HUMAN_COLLECTIONS)('nega leitura de outro usuário logado em %s', async (col) => {
-    const db = testEnv.authenticatedContext(INTRUDER_UID).firestore();
-    await assertFails(getDoc(doc(db, col, 'x')));
+  it.each(HUMAN_COLLECTIONS)('nega leitura de outro e-mail logado em %s', async (col) => {
+    await assertFails(getDoc(doc(intruso(), col, 'x')));
+  });
+
+  it.each(HUMAN_COLLECTIONS)('nega escrita de outro e-mail logado em %s', async (col) => {
+    await assertFails(setDoc(doc(intruso(), col, 'x'), { a: 1 }));
   });
 
   it.each(HUMAN_COLLECTIONS)('permite leitura e escrita do dono em %s', async (col) => {
-    const db = testEnv.authenticatedContext(OWNER_UID).firestore();
-    await assertSucceeds(setDoc(doc(db, col, 'x'), { a: 1 }));
-    await assertSucceeds(getDoc(doc(db, col, 'x')));
+    await assertSucceeds(setDoc(doc(dono(), col, 'x'), { a: 1 }));
+    await assertSucceeds(getDoc(doc(dono(), col, 'x')));
   });
 });
 
 describe('coleções de máquina', () => {
   it.each(MACHINE_COLLECTIONS)('permite o dono ler %s', async (col) => {
-    const db = testEnv.authenticatedContext(OWNER_UID).firestore();
-    await assertSucceeds(getDoc(doc(db, col, 'x')));
+    await assertSucceeds(getDoc(doc(dono(), col, 'x')));
   });
 
   it.each(MACHINE_COLLECTIONS)('nega escrita até do dono em %s (só Admin SDK)', async (col) => {
-    const db = testEnv.authenticatedContext(OWNER_UID).firestore();
-    await assertFails(setDoc(doc(db, col, 'x'), { a: 1 }));
+    await assertFails(setDoc(doc(dono(), col, 'x'), { a: 1 }));
   });
 
   it.each(MACHINE_COLLECTIONS)('nega leitura anônima em %s', async (col) => {
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, col, 'x')));
+    await assertFails(getDoc(doc(anonimo(), col, 'x')));
+  });
+
+  it.each(MACHINE_COLLECTIONS)('nega leitura de outro e-mail logado em %s', async (col) => {
+    await assertFails(getDoc(doc(intruso(), col, 'x')));
   });
 });
 
 describe('coleção desconhecida', () => {
   it('é negada até para o dono', async () => {
-    const db = testEnv.authenticatedContext(OWNER_UID).firestore();
-    await assertFails(getDoc(doc(db, 'colecao_inventada', 'x')));
-    await assertFails(setDoc(doc(db, 'colecao_inventada', 'x'), { a: 1 }));
+    await assertFails(getDoc(doc(dono(), 'colecao_inventada', 'x')));
+    await assertFails(setDoc(doc(dono(), 'colecao_inventada', 'x'), { a: 1 }));
   });
 });
