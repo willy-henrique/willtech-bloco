@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -29,6 +29,7 @@ import CaptureChat from './src/features/capture/CaptureChat';
 import ImportarProjetos from './src/features/projects/ImportarProjetos';
 import { ordenarPorAtividade } from './src/features/projects/ordenarPorAtividade';
 import AtualizarDoGitHub from './src/features/projects/AtualizarDoGitHub';
+import { projectPaymentsService } from './src/services/firestoreService';
 import ProjectCard from './components/ProjectCard';
 import ProjectModal from './components/ProjectModal';
 import ProjectDetails from './components/ProjectDetails';
@@ -37,7 +38,7 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import FinanceHub from './components/FinanceHub';
-import { Project, TaskPriority } from './types';
+import { Project, TaskPriority, type ProjectPayment } from './types';
 
 type View = 'overview' | 'projects' | 'tasks' | 'finance' | 'vault' | 'resources';
 
@@ -107,6 +108,17 @@ const MainDashboard: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projectQuery, setProjectQuery] = useState('');
+  // Carregado UMA vez e distribuido aos cards, em vez de cada card consultar.
+  const [payments, setPayments] = useState<ProjectPayment[]>([]);
+
+  useEffect(() => {
+    let ativo = true;
+    projectPaymentsService
+      .getAll()
+      .then((lista) => { if (ativo) setPayments(lista); })
+      .catch((erro) => console.error('Erro ao carregar pagamentos:', erro));
+    return () => { ativo = false; };
+  }, []);
 
   const openTasks = useMemo(() => tasks.filter((task) => !task.isCompleted), [tasks]);
   const attentionTasks = useMemo(
@@ -199,6 +211,7 @@ const MainDashboard: React.FC = () => {
             <ProjectCard
               project={project}
               tasks={tasks}
+              payments={payments}
               onOpen={() => setSelectedProject(project)}
               onEdit={() => {
                 setEditingProject(project);

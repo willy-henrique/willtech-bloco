@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -10,11 +10,14 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { Project, ProjectPayment, Task } from '../types';
+import { estaPendente } from '../src/features/payments/estaPendente';
 import { projectPaymentsService } from '../src/services/firestoreService';
 
 interface ProjectCardProps {
   project: Project;
   tasks: Task[];
+  /** Pagamentos ja carregados pelo pai. Sem isto o card consulta sozinho. */
+  payments?: ProjectPayment[];
   onOpen?: () => void;
   onEdit?: () => void;
 }
@@ -31,40 +34,37 @@ const STATUS_CLASS: Record<Project['status'], string> = {
   Legacy: 'border-white/[0.07] bg-white/[0.035] text-neutral-500',
 };
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks, onOpen, onEdit }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks, payments, onOpen, onEdit }) => {
   const pendingTasks = tasks.filter((task) => task.projectId === project.id && !task.isCompleted).length;
-  const [pendingPayments, setPendingPayments] = useState<ProjectPayment[]>([]);
+  const [carregadosSozinho, setCarregadosSozinho] = useState<ProjectPayment[]>([]);
+
+  // Quando o pai ja carregou a lista, o card nao consulta nada. Antes cada
+  // card fazia a propria consulta E repetia a cada 60s: com 19 projetos
+  // eram 19 leituras por minuto so para desenhar a lista.
+  const precisaBuscarSozinho = payments === undefined;
 
   useEffect(() => {
-    const loadPayments = async () => {
-      try {
-        const payments = await projectPaymentsService.getByProjectId(project.id);
-        const today = new Date();
-        const pending = payments.filter((payment) => {
-          if (payment.status === 'paid') {
-            if (payment.isRecurring && payment.recurringDay && payment.paidAt) {
-              const paidDate = new Date(payment.paidAt);
-              return today.getDate() >= payment.recurringDay && today.getMonth() !== paidDate.getMonth();
-            }
-            return false;
-          }
+    if (!precisaBuscarSozinho) return;
+    let ativo = true;
 
-          if (payment.isRecurring && payment.recurringDay) {
-            return today.getDate() >= payment.recurringDay;
-          }
+    projectPaymentsService
+      .getByProjectId(project.id)
+      .then((lista) => {
+        if (ativo) setCarregadosSozinho(lista);
+      })
+      .catch((erro) => console.error('Erro ao carregar pagamentos:', erro));
 
-          return new Date(payment.dueDate) <= today;
-        });
-        setPendingPayments(pending);
-      } catch (error) {
-        console.error('Erro ao carregar pagamentos:', error);
-      }
+    return () => {
+      ativo = false;
     };
+  }, [project.id, precisaBuscarSozinho]);
 
-    void loadPayments();
-    const interval = window.setInterval(loadPayments, 60000);
-    return () => window.clearInterval(interval);
-  }, [project.id]);
+  const pendingPayments = useMemo(() => {
+    const hoje = new Date();
+    return (payments ?? carregadosSozinho)
+      .filter((pagamento) => pagamento.projectId === project.id)
+      .filter((pagamento) => estaPendente(pagamento, hoje));
+  }, [payments, carregadosSozinho, project.id]);
 
   const initials = project.name
     .split(/\s+/)

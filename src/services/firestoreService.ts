@@ -523,6 +523,26 @@ export const projectCredentialsService = {
 
 // ==================== PROJECT PAYMENTS ====================
 export const projectPaymentsService = {
+  /**
+   * Todos os pagamentos de uma vez.
+   *
+   * Existe para evitar o N+1: o painel chamava getByProjectId uma vez por
+   * card, o que com 19 projetos virava 19 consultas so para desenhar a
+   * lista. Uma consulta resolve.
+   */
+  async getAll(): Promise<ProjectPayment[]> {
+    const q = query(collection(db, COLLECTIONS.PROJECT_PAYMENTS), orderBy('dueDate', 'asc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+      } as ProjectPayment;
+    });
+  },
+
   async getByProjectId(projectId: string): Promise<ProjectPayment[]> {
     const q = query(
       collection(db, COLLECTIONS.PROJECT_PAYMENTS),

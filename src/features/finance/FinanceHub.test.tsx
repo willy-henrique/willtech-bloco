@@ -18,12 +18,12 @@ describe('FinanceHub', () => {
     render(<FinanceHub embedded />);
     expect(screen.getByText('Conta pessoal')).toBeInTheDocument();
     expect(screen.queryByText('Cliente empresa')).not.toBeInTheDocument();
-    expect(screen.getByText('-R$ 100,00')).toBeInTheDocument();
+    expect(screen.getByText('Liquidado').closest('div')?.parentElement).toHaveTextContent(/-R\$\s*100,00/);
 
     await user.click(screen.getByRole('button', { name: /business/i }));
     expect(screen.getByText('Cliente empresa')).toBeInTheDocument();
     expect(screen.queryByText('Conta pessoal')).not.toBeInTheDocument();
-    expect(screen.getByText('R$ 1.000,00')).toBeInTheDocument();
+    expect(screen.getByText('Liquidado').closest('div')?.parentElement).toHaveTextContent(/R\$\s*1\.000,00/);
   });
 
   it('disponibiliza categoria criada ao cadastrar transacao', async () => {
@@ -39,7 +39,7 @@ describe('FinanceHub', () => {
     await user.selectOptions(selects[2], 'Impostos');
     await user.type(within(dialog).getByPlaceholderText('0,00'), '150,00');
     await user.click(within(dialog).getByRole('button', { name: /^salvar$/i }));
-    expect(screen.getByText('DAS')).toBeInTheDocument();
-    expect(screen.getByText('Impostos')).toBeInTheDocument();
+    const row = screen.getByText('DAS').closest('tr')!;
+    expect(within(row).getByText('Impostos')).toBeInTheDocument();
   });
 });
