@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from './AppContext';
-import Terminal from './components/Terminal';
+import CaptureChat from './src/features/capture/CaptureChat';
 import ProjectCard from './components/ProjectCard';
 import ProjectModal from './components/ProjectModal';
 import ProjectDetails from './components/ProjectDetails';
@@ -10,7 +10,7 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign } from 'lucide-react';
+import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign, Sparkles } from 'lucide-react';
 import { Project } from './types';
 import FinanceHub from './components/FinanceHub';
 import { useAuth } from './src/auth/AuthContext';
@@ -18,6 +18,7 @@ import { useAuth } from './src/auth/AuthContext';
 const MainDashboard: React.FC = () => {
   const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
   const { user, logout } = useAuth();
+  const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [mainView, setMainView] = useState<'dashboard' | 'finance'>('dashboard');
   const [mobileTab, setMobileTab] = useState<'projects' | 'tasks' | 'vault' | 'config'>('projects');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -122,7 +123,21 @@ const MainDashboard: React.FC = () => {
             </div>
             
             <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
-              <Terminal />
+              <button
+
+                type="button"
+
+                onClick={() => setIsCaptureOpen(true)}
+
+                className="w-full flex items-center gap-2.5 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3.5 py-2.5 text-left text-sm text-neutral-500 transition hover:border-lime-500/30 hover:text-neutral-300"
+
+              >
+
+                <Sparkles size={16} className="text-lime-400 shrink-0" />
+
+                <span className="flex-1 truncate">O que precisa ser feito?</span>
+
+              </button>
             </div>
           </div>
         </header>
@@ -295,6 +310,8 @@ const MainDashboard: React.FC = () => {
         onDelete={deleteProject}
         project={editingProject}
       />
+
+      <CaptureChat open={isCaptureOpen} onClose={() => setIsCaptureOpen(false)} />
     </div>
   );
 };

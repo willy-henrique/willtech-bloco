@@ -37,6 +37,8 @@ export interface Project {
   color: string;
   createdAt?: number;
   stack?: string; // Stack tecnológico (ex: "React/Node", "PHP/SQL")
+  aliases?: string[]; // Apelidos que voce usa ao falar do projeto (ex: ["talk", "mavotalk"])
+  vocab?: string[];   // Vocabulario do dominio, para reconhecer o projeto sem citar o nome
 }
 
 export interface Snippet {
