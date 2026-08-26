@@ -15,12 +15,13 @@ vi.mock('../../../AppContext', () => ({
 // Catálogo fixo: o real tem datas que saem do recorte de 30 dias com o tempo.
 // Vai dentro de vi.hoisted porque a fábrica do vi.mock é içada para o topo
 // do arquivo e não enxergaria uma const declarada aqui embaixo.
-const { CATALOGO_FALSO } = vi.hoisted(() => {
+const { CATALOGO_FALSO, ONTEM } = vi.hoisted(() => {
   const recente = new Date();
   recente.setDate(recente.getDate() - 2);
   const ontem = recente.toISOString().slice(0, 10);
 
   return {
+    ONTEM: ontem,
     CATALOGO_FALSO: [
       {
         name: 'Mavo Talk',
@@ -131,6 +132,9 @@ describe('ImportarProjetos', () => {
         repo: 'willy-henrique/willtalk',
         aliases: ['talk', 'willtalk'],
         vocab: ['whatsapp', 'sessao'],
+        ultimoCommit: ONTEM,
+        evolucoes30d: 37,
+        correcoes30d: 53,
       },
     ];
     render(<ImportarProjetos open onClose={vi.fn()} />);

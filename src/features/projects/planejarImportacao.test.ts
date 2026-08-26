@@ -82,6 +82,80 @@ describe('planejarImportacao — casamento com o que já existe', () => {
     const plano = planejarImportacao([doCatalogo()], [existente({ name: 'Naturize' })], HOJE);
     expect(plano.criar).toHaveLength(1);
   });
+
+  it('casa quando o apelido aparece DENTRO do nome cadastrado', () => {
+    // no painel: "projeto do jeferson agrorafia" / no catálogo: "WillTech ERP"
+    const erp = doCatalogo({ name: 'WillTech ERP', aliases: ['erp', 'agrorafia'] });
+    const plano = planejarImportacao(
+      [erp],
+      [existente({ name: 'projeto do jeferson agrorafia' })],
+      HOJE
+    );
+    expect(plano.criar).toHaveLength(0);
+    expect(plano.atualizar[0].existente.name).toBe('projeto do jeferson agrorafia');
+  });
+
+  it('não casa por apelido curto, que geraria falso positivo', () => {
+    // "chat" dentro de "Chat do Cliente" não pode reivindicar o Mavo AI
+    const ai = doCatalogo({ name: 'Mavo AI', aliases: ['chat', 'mavoai'] });
+    const plano = planejarImportacao([ai], [existente({ name: 'Chat do Cliente' })], HOJE);
+    expect(plano.criar).toHaveLength(1);
+    expect(plano.atualizar).toHaveLength(0);
+  });
+
+  it('não deixa dois projetos do catálogo reivindicarem o mesmo card', () => {
+    const a = doCatalogo({ name: 'Mavo Talk', aliases: ['mavotalk'] });
+    const b = doCatalogo({ name: 'Mavo Talk Local', aliases: ['mavotalk'] });
+    const plano = planejarImportacao([a, b], [existente({ name: 'meu mavotalk' })], HOJE);
+    expect(plano.atualizar).toHaveLength(1);
+    expect(plano.criar).toHaveLength(1);
+  });
+
+  it('prefere o casamento exato ao casamento por trecho', () => {
+    const porTrecho = doCatalogo({ name: 'Outro', aliases: ['mavotalk'] });
+    const exato = doCatalogo({ name: 'meu mavotalk', aliases: [] });
+    const plano = planejarImportacao([porTrecho, exato], [existente({ name: 'meu mavotalk' })], HOJE);
+    expect(plano.atualizar[0].doCatalogo.name).toBe('meu mavotalk');
+  });
+});
+
+describe('planejarImportacao — atividade', () => {
+  it('grava a atividade ao criar', () => {
+    const plano = planejarImportacao([doCatalogo()], [], HOJE);
+    expect(plano.criar[0].evolucoes30d).toBe(37);
+    expect(plano.criar[0].correcoes30d).toBe(53);
+  });
+
+  it('sempre atualiza a atividade, porque é derivada e não escrita à mão', () => {
+    const desatualizado = existente({
+      aliases: ['mavo', 'mavo talk', 'talk', 'willtalk'],
+      vocab: ['whatsapp', 'sessao', 'atendente'],
+      stack: 'Next.js + Supabase',
+      repo: 'willy-henrique/willtalk',
+      evolucoes30d: 2,
+      correcoes30d: 1,
+      ultimoCommit: '2026-08-01',
+    });
+    const plano = planejarImportacao([doCatalogo()], [desatualizado], HOJE);
+    expect(plano.atualizar[0].patch.evolucoes30d).toBe(37);
+    expect(plano.atualizar[0].patch.correcoes30d).toBe(53);
+    expect(plano.atualizar[0].patch.ultimoCommit).toBe('2026-08-25');
+  });
+
+  it('não marca mudança quando a atividade já está igual', () => {
+    const emDia = existente({
+      aliases: ['mavo', 'mavo talk', 'talk', 'willtalk'],
+      vocab: ['whatsapp', 'sessao', 'atendente'],
+      stack: 'Next.js + Supabase',
+      repo: 'willy-henrique/willtalk',
+      evolucoes30d: 37,
+      correcoes30d: 53,
+      ultimoCommit: '2026-08-25',
+    });
+    const plano = planejarImportacao([doCatalogo()], [emDia], HOJE);
+    expect(plano.atualizar).toHaveLength(0);
+    expect(plano.semMudanca).toHaveLength(1);
+  });
 });
 
 describe('planejarImportacao — o que muda no que já existe', () => {
@@ -144,15 +218,6 @@ describe('planejarImportacao — o que muda no que já existe', () => {
     expect(plano.atualizar[0].mudancas.join(' ')).toMatch(/apelido|vocabul|stack/i);
   });
 
-  it('não lista para atualizar quando não há nada a mudar', () => {
-    const jaCompleto = existente({
-      aliases: ['mavo', 'mavo talk', 'talk', 'willtalk'],
-      vocab: ['whatsapp', 'sessao', 'atendente'],
-      stack: 'Next.js + Supabase',
-      repo: 'willy-henrique/willtalk',
-    });
-    const plano = planejarImportacao([doCatalogo()], [jaCompleto], HOJE);
-    expect(plano.atualizar).toHaveLength(0);
-    expect(plano.semMudanca).toHaveLength(1);
-  });
+  // O caso "nada a mudar" é coberto por
+  // 'não marca mudança quando a atividade já está igual', no bloco de atividade.
 });

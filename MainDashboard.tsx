@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useApp } from './AppContext';
 import CaptureChat from './src/features/capture/CaptureChat';
 import ImportarProjetos from './src/features/projects/ImportarProjetos';
+import { ordenarPorAtividade } from './src/features/projects/ordenarPorAtividade';
 import ProjectCard from './components/ProjectCard';
 import ProjectModal from './components/ProjectModal';
 import ProjectDetails from './components/ProjectDetails';
@@ -19,6 +20,8 @@ import { useAuth } from './src/auth/AuthContext';
 const MainDashboard: React.FC = () => {
   const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
   const { user, logout } = useAuth();
+  // Os que mexem mais sobem: ordem por commits dos ultimos 30 dias.
+  const projetosOrdenados = React.useMemo(() => ordenarPorAtividade(projects), [projects]);
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [mainView, setMainView] = useState<'dashboard' | 'finance'>('dashboard');
@@ -180,7 +183,7 @@ const MainDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {projects.map((proj) => (
+                  {projetosOrdenados.map((proj) => (
                     <div
                       key={proj.id}
                       className="group relative cursor-pointer"

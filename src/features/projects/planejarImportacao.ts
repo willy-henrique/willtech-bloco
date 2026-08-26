@@ -4,6 +4,13 @@ import type { CatalogoProjeto } from './tipos';
 /** Quantos dias sem commit tiram o projeto do recorte da importação. */
 const JANELA_DIAS = 30;
 
+/**
+ * Tamanho mínimo de um apelido para valer casamento por trecho.
+ * "agrorafia" dentro de "projeto do jeferson agrorafia" é sinal forte;
+ * "chat" dentro de "Chat do Cliente" é coincidência.
+ */
+const MIN_APELIDO_PARA_TRECHO = 6;
+
 export interface AtualizacaoPlanejada {
   existente: Project;
   doCatalogo: CatalogoProjeto;
@@ -11,6 +18,8 @@ export interface AtualizacaoPlanejada {
   patch: Partial<Project>;
   /** Descrição em português, para a tela de confirmação. */
   mudancas: string[];
+  /** Como o casamento aconteceu, para a tela deixar transparente. */
+  casamento: 'exato' | 'trecho';
 }
 
 export interface PlanoImportacao {
@@ -26,19 +35,50 @@ const normalizar = (s: string) =>
 
 const uniao = (a: string[] = [], b: string[] = []) => [...new Set([...a, ...b])];
 
-/**
- * Casa um projeto do catálogo com um que já existe no painel. Compara pelo
- * nome e também pelos apelidos — no painel pode estar "WillTalk" enquanto o
- * catálogo chama de "Mavo Talk", e são o mesmo projeto.
- */
-function acharExistente(doCatalogo: CatalogoProjeto, existentes: Project[]): Project | undefined {
-  const nomeCatalogo = normalizar(doCatalogo.name);
-  const apelidos = new Set(doCatalogo.aliases.map(normalizar));
+const escaparRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  return existentes.find((e) => {
+/** Casa só em fronteira de palavra, para "erp" não casar dentro de "superp". */
+const contemTermo = (texto: string, termo: string) =>
+  new RegExp(`(?:^|\\W)${escaparRegex(termo)}(?:\\W|$)`).test(texto);
+
+interface Casamento {
+  projeto: Project;
+  tipo: 'exato' | 'trecho';
+}
+
+/**
+ * Casa um projeto do catálogo com um que já existe no painel.
+ *
+ * Duas formas, nesta ordem de preferência:
+ *   exato  — o nome cadastrado é igual ao nome ou a um apelido do catálogo
+ *   trecho — um apelido longo aparece como palavra inteira dentro do nome
+ *            cadastrado ("agrorafia" em "projeto do jeferson agrorafia")
+ *
+ * Cards já reivindicados por outro item do catálogo são pulados, senão dois
+ * projetos parecidos disputariam o mesmo card e um sobrescreveria o outro.
+ */
+function acharExistente(
+  doCatalogo: CatalogoProjeto,
+  existentes: Project[],
+  reivindicados: Set<string>
+): Casamento | undefined {
+  const nomeCatalogo = normalizar(doCatalogo.name);
+  const apelidos = doCatalogo.aliases.map(normalizar);
+  const conjunto = new Set([...apelidos, nomeCatalogo]);
+
+  const livres = existentes.filter((e) => !reivindicados.has(e.id));
+
+  const exato = livres.find((e) => conjunto.has(normalizar(e.name)));
+  if (exato) return { projeto: exato, tipo: 'exato' };
+
+  const longos = [...conjunto].filter((a) => a.length >= MIN_APELIDO_PARA_TRECHO);
+  const porTrecho = livres.find((e) => {
     const nome = normalizar(e.name);
-    return nome === nomeCatalogo || apelidos.has(nome);
+    return longos.some((a) => contemTermo(nome, a));
   });
+  if (porTrecho) return { projeto: porTrecho, tipo: 'trecho' };
+
+  return undefined;
 }
 
 /**
@@ -47,6 +87,9 @@ function acharExistente(doCatalogo: CatalogoProjeto, existentes: Project[]): Pro
  * O que o usuário definiu à mão é intocável: nome, cor, progresso e status
  * ficam como estão. Apelidos e vocabulário são somados aos existentes, não
  * substituídos. Stack e repo só são preenchidos quando estão vazios.
+ *
+ * A atividade (últimos commits) é a exceção: é derivada do repositório, não
+ * escrita por ninguém, então é sempre sobrescrita com o valor mais novo.
  */
 export function planejarImportacao(
   catalogo: CatalogoProjeto[],
@@ -64,7 +107,21 @@ export function planejarImportacao(
     foraDoRecorte: [],
   };
 
-  for (const item of catalogo) {
+  const reivindicados = new Set<string>();
+
+  // Casamento exato tem prioridade sobre casamento por trecho, então os
+  // itens que casam exato precisam escolher primeiro.
+  const porPrioridade = [...catalogo].sort((a, b) => {
+    const exato = (item: CatalogoProjeto) =>
+      existentes.some((e) =>
+        [normalizar(item.name), ...item.aliases.map(normalizar)].includes(normalizar(e.name))
+      )
+        ? 0
+        : 1;
+    return exato(a) - exato(b);
+  });
+
+  for (const item of porPrioridade) {
     if (item.ultimoCommit < dataCorte) {
       plano.foraDoRecorte.push({
         nome: item.name,
@@ -73,11 +130,14 @@ export function planejarImportacao(
       continue;
     }
 
-    const existente = acharExistente(item, existentes);
-    if (!existente) {
+    const casamento = acharExistente(item, existentes, reivindicados);
+    if (!casamento) {
       plano.criar.push(item);
       continue;
     }
+
+    const existente = casamento.projeto;
+    reivindicados.add(existente.id);
 
     const patch: Partial<Project> = {};
     const mudancas: string[] = [];
@@ -104,10 +164,28 @@ export function planejarImportacao(
       mudancas.push(`repositório: ${item.repo}`);
     }
 
+    const atividadeMudou =
+      existente.ultimoCommit !== item.ultimoCommit ||
+      existente.evolucoes30d !== item.evolucoes30d ||
+      existente.correcoes30d !== item.correcoes30d;
+
+    if (atividadeMudou) {
+      patch.ultimoCommit = item.ultimoCommit;
+      patch.evolucoes30d = item.evolucoes30d;
+      patch.correcoes30d = item.correcoes30d;
+      mudancas.push(`atividade: ${item.evolucoes30d} evoluções, ${item.correcoes30d} correções`);
+    }
+
     if (mudancas.length === 0) {
       plano.semMudanca.push(existente);
     } else {
-      plano.atualizar.push({ existente, doCatalogo: item, patch, mudancas });
+      plano.atualizar.push({
+        existente,
+        doCatalogo: item,
+        patch,
+        mudancas,
+        casamento: casamento.tipo,
+      });
     }
   }
 

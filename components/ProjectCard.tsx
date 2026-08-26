@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Project, Task, ProjectPayment } from '../types';
 import { motion } from 'framer-motion';
-import { Layers, Activity, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { Layers, Activity, Clock, DollarSign, AlertCircle, TrendingUp, Wrench } from 'lucide-react';
 import { projectPaymentsService } from '../src/services/firestoreService';
 
 interface ProjectCardProps {
@@ -132,6 +132,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks }) => {
               {project.stack || 'React/Node'}
             </div>
           </div>
+
+        {project.ultimoCommit && (
+          <div className="mt-3 flex items-center gap-3 text-[10px] font-mono text-neutral-500">
+            <span className="flex items-center gap-1" title="Evolucoes nos ultimos 30 dias">
+              <TrendingUp size={10} className="text-lime-500" />
+              {project.evolucoes30d ?? 0}
+            </span>
+            <span className="flex items-center gap-1" title="Correcoes nos ultimos 30 dias">
+              <Wrench size={10} className="text-orange-500" />
+              {project.correcoes30d ?? 0}
+            </span>
+            <span className="ml-auto" title="Ultimo commit">{project.ultimoCommit}</span>
+          </div>
+        )}
         </div>
       </div>
     </motion.div>
