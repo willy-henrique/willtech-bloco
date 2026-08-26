@@ -69,7 +69,7 @@ describe('LoginScreen — e-mail e senha', () => {
 
     await user.type(screen.getByLabelText('E-mail'), 'willydev01@gmail.com');
     await user.type(screen.getByLabelText('Senha'), 'senha-secreta');
-    await user.click(screen.getByRole('button', { name: 'Entrar' }));
+    await user.click(screen.getByRole('button', { name: /entrar no workspace/i }));
 
     expect(signInWithEmail).toHaveBeenCalledWith('willydev01@gmail.com', 'senha-secreta');
   });
@@ -79,7 +79,7 @@ describe('LoginScreen — e-mail e senha', () => {
     mockUseAuth.mockReturnValue(sessao());
     render(<AuthGate><div>PAINEL</div></AuthGate>);
 
-    await user.click(screen.getByRole('button', { name: 'Entrar' }));
+    await user.click(screen.getByRole('button', { name: /entrar no workspace/i }));
     expect(signInWithEmail).not.toHaveBeenCalled();
   });
 

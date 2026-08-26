@@ -1,154 +1,197 @@
-
-import React, { useState, useEffect } from 'react';
-import { Project, Task, ProjectPayment } from '../types';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Layers, Activity, Clock, DollarSign, AlertCircle, TrendingUp, Wrench } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  Code2,
+  GitCommitHorizontal,
+  MoreHorizontal,
+} from 'lucide-react';
+import { Project, ProjectPayment, Task } from '../types';
 import { projectPaymentsService } from '../src/services/firestoreService';
 
 interface ProjectCardProps {
   project: Project;
   tasks: Task[];
+  onOpen?: () => void;
+  onEdit?: () => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks }) => {
-  const pendingTasks = tasks.filter(t => t.projectId === project.id && !t.isCompleted).length;
+const STATUS_LABEL: Record<Project['status'], string> = {
+  Active: 'Ativo',
+  Maintenance: 'Manutenção',
+  Legacy: 'Legado',
+};
+
+const STATUS_CLASS: Record<Project['status'], string> = {
+  Active: 'border-emerald-400/15 bg-emerald-400/[0.08] text-emerald-300',
+  Maintenance: 'border-amber-400/15 bg-amber-400/[0.08] text-amber-300',
+  Legacy: 'border-white/[0.07] bg-white/[0.035] text-neutral-500',
+};
+
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks, onOpen, onEdit }) => {
+  const pendingTasks = tasks.filter((task) => task.projectId === project.id && !task.isCompleted).length;
   const [pendingPayments, setPendingPayments] = useState<ProjectPayment[]>([]);
 
   useEffect(() => {
     const loadPayments = async () => {
       try {
         const payments = await projectPaymentsService.getByProjectId(project.id);
-        // Filtrar apenas pagamentos pendentes ou vencidos
         const today = new Date();
-        const pending = payments.filter(p => {
-          if (p.status === 'paid') {
-            // Se é recorrente e já foi pago, verificar se já passou o dia novamente
-            if (p.isRecurring && p.recurringDay && p.paidAt) {
-              const paidDate = new Date(p.paidAt);
-              const currentDay = today.getDate();
-              // Se já passou o dia do mês desde o último pagamento, mostrar como pendente
-              if (currentDay >= p.recurringDay && today.getMonth() !== paidDate.getMonth()) {
-                return true;
-              }
+        const pending = payments.filter((payment) => {
+          if (payment.status === 'paid') {
+            if (payment.isRecurring && payment.recurringDay && payment.paidAt) {
+              const paidDate = new Date(payment.paidAt);
+              return today.getDate() >= payment.recurringDay && today.getMonth() !== paidDate.getMonth();
             }
             return false;
           }
-          
-          // Se é recorrente, verificar se o dia do mês já chegou
-          if (p.isRecurring && p.recurringDay) {
-            const currentDay = today.getDate();
-            return currentDay >= p.recurringDay;
+
+          if (payment.isRecurring && payment.recurringDay) {
+            return today.getDate() >= payment.recurringDay;
           }
-          
-          // Para pagamentos não recorrentes, verificar data de vencimento
-          const dueDate = new Date(p.dueDate);
-          return dueDate <= today;
+
+          return new Date(payment.dueDate) <= today;
         });
         setPendingPayments(pending);
       } catch (error) {
         console.error('Erro ao carregar pagamentos:', error);
       }
     };
-    loadPayments();
-    // Atualizar a cada minuto para verificar se chegou o dia
-    const interval = setInterval(loadPayments, 60000);
-    return () => clearInterval(interval);
+
+    void loadPayments();
+    const interval = window.setInterval(loadPayments, 60000);
+    return () => window.clearInterval(interval);
   }, [project.id]);
 
-  return (
-    <motion.div
-      whileHover={{ y: -5, scale: 1.02 }}
-      className="relative p-5 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-lime-500/50 transition-colors duration-300 shadow-lg group overflow-hidden"
-    >
-      {/* Background Accent */}
-      <div 
-        className="absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-20 transition-opacity group-hover:opacity-40" 
-        style={{ backgroundColor: project.color }}
-      ></div>
+  const initials = project.name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('')
+    .toUpperCase();
 
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h3 className="text-xl font-bold text-white group-hover:text-lime-400 transition-colors">
-            {project.name}
-          </h3>
-          <p className="text-xs text-neutral-500 font-mono uppercase tracking-tighter mt-1">
-            {project.type}
-          </p>
+  const lastCommitLabel = project.ultimoCommit
+    ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
+        new Date(`${project.ultimoCommit}T12:00:00`),
+      )
+    : null;
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onOpen?.();
+    }
+  };
+
+  return (
+    <motion.article
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={handleKeyDown}
+      aria-label={`Abrir projeto ${project.name}`}
+      className="project-card group relative min-h-[242px] cursor-pointer overflow-hidden rounded-[22px] border border-white/[0.075] p-5 outline-none transition focus-visible:border-emerald-400/40 focus-visible:ring-2 focus-visible:ring-emerald-400/15"
+    >
+      <div
+        className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full opacity-[0.09] blur-[45px] transition group-hover:opacity-[0.16]"
+        style={{ backgroundColor: project.color }}
+      />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] border text-[11px] font-bold tracking-[-0.02em]"
+            style={{
+              color: project.color,
+              borderColor: `${project.color}30`,
+              backgroundColor: `${project.color}12`,
+            }}
+          >
+            {initials || 'WT'}
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate text-[15px] font-semibold tracking-[-0.02em] text-neutral-100 transition group-hover:text-white">
+              {project.name}
+            </h3>
+            <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-600">
+              {project.type || 'Projeto digital'}
+            </p>
+          </div>
         </div>
-        <div className="px-2 py-1 rounded bg-neutral-800 text-[10px] font-bold text-neutral-400 uppercase tracking-widest border border-neutral-700">
-          {project.status}
+
+        <div className="flex items-center gap-1.5">
+          <span className={`rounded-lg border px-2 py-1 text-[9px] font-semibold ${STATUS_CLASS[project.status]}`}>
+            {STATUS_LABEL[project.status]}
+          </span>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
+              className="grid h-7 w-7 place-items-center rounded-lg text-neutral-700 opacity-0 transition hover:bg-white/[0.06] hover:text-neutral-300 group-hover:opacity-100 focus:opacity-100"
+              aria-label={`Editar ${project.name}`}
+            >
+              <MoreHorizontal size={16} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Alertas de Pagamento */}
       {pendingPayments.length > 0 && (
-        <div className="mb-4 p-3 bg-red-500/10 border-2 border-red-500/50 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle size={14} className="text-red-500" />
-            <span className="text-xs font-bold text-red-400 uppercase">Pagamento Pendente</span>
-          </div>
-          {pendingPayments.map(payment => (
-            <div key={payment.id} className="text-xs text-red-300">
-              {payment.title} {payment.isRecurring && payment.recurringDay && `(Dia ${payment.recurringDay})`}
-              {payment.amount && ` - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: payment.currency || 'BRL' }).format(payment.amount)}`}
-            </div>
-          ))}
+        <div className="relative mt-4 flex items-center gap-2.5 rounded-xl border border-rose-400/15 bg-rose-400/[0.055] px-3 py-2.5">
+          <AlertTriangle size={14} className="shrink-0 text-rose-300" />
+          <p className="min-w-0 flex-1 truncate text-[10px] font-medium text-rose-200/80">
+            {pendingPayments.length === 1
+              ? `${pendingPayments[0].title} requer atenção`
+              : `${pendingPayments.length} pagamentos requerem atenção`}
+          </p>
         </div>
       )}
 
-      <div className="space-y-4">
-        <div>
-          <div className="flex justify-between text-xs mb-1.5">
-            <span className="text-neutral-400 flex items-center gap-1">
-              <Activity size={12} /> Execution Progress
-            </span>
-            <span className="font-mono text-lime-400">{project.progress}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${project.progress}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full rounded-full"
-              style={{ backgroundColor: project.color }}
-            />
-          </div>
+      <div className="relative mt-5">
+        <div className="mb-2 flex items-center justify-between text-[10px]">
+          <span className="text-neutral-600">Progresso do projeto</span>
+          <span className="font-mono font-semibold text-neutral-300">{project.progress}%</span>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-neutral-950 rounded-xl border border-neutral-800/50">
-            <div className="flex items-center gap-2 text-neutral-500 text-[10px] uppercase font-bold mb-1">
-              <Clock size={10} className="text-lime-500" /> Pending
-            </div>
-            <div className="text-xl font-mono font-bold text-white">
-              {pendingTasks.toString().padStart(2, '0')}
-            </div>
-          </div>
-          <div className="p-3 bg-neutral-950 rounded-xl border border-neutral-800/50">
-            <div className="flex items-center gap-2 text-neutral-500 text-[10px] uppercase font-bold mb-1">
-              <Layers size={10} className="text-blue-500" /> Stack
-            </div>
-            <div className="text-xs font-bold text-neutral-300 truncate">
-              {project.stack || 'React/Node'}
-            </div>
-          </div>
-
-        {project.ultimoCommit && (
-          <div className="mt-3 flex items-center gap-3 text-[10px] font-mono text-neutral-500">
-            <span className="flex items-center gap-1" title="Evolucoes nos ultimos 30 dias">
-              <TrendingUp size={10} className="text-lime-500" />
-              {project.evolucoes30d ?? 0}
-            </span>
-            <span className="flex items-center gap-1" title="Correcoes nos ultimos 30 dias">
-              <Wrench size={10} className="text-orange-500" />
-              {project.correcoes30d ?? 0}
-            </span>
-            <span className="ml-auto" title="Ultimo commit">{project.ultimoCommit}</span>
-          </div>
-        )}
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.055]">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.max(0, Math.min(project.progress, 100))}%` }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="h-full rounded-full"
+            style={{ backgroundColor: project.color }}
+          />
         </div>
       </div>
-    </motion.div>
+
+      <div className="relative mt-5 grid grid-cols-[1fr_1fr_auto] items-center gap-2 border-t border-white/[0.055] pt-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.1em] text-neutral-700">
+            <Clock3 size={11} /> Pendentes
+          </div>
+          <p className="mt-1 text-xs font-medium text-neutral-300">{pendingTasks}</p>
+        </div>
+        <div className="min-w-0 border-l border-white/[0.055] pl-3">
+          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.1em] text-neutral-700">
+            {lastCommitLabel ? <GitCommitHorizontal size={11} /> : <Code2 size={11} />}
+            {lastCommitLabel ? 'Commit' : 'Stack'}
+          </div>
+          <p className="mt-1 truncate text-xs font-medium text-neutral-300">
+            {lastCommitLabel || project.stack || 'Não informada'}
+          </p>
+        </div>
+        <div className="grid h-8 w-8 place-items-center rounded-xl border border-white/[0.065] text-neutral-600 transition group-hover:border-emerald-400/15 group-hover:bg-emerald-400/[0.07] group-hover:text-emerald-300">
+          {project.progress === 100 ? <CheckCircle2 size={14} /> : <ArrowUpRight size={14} />}
+        </div>
+      </div>
+    </motion.article>
   );
 };
 

@@ -209,8 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const id = await projectsService.create(project);
       console.log('✅ Projeto criado com sucesso:', id);
-      // O listener vai atualizar automaticamente, mas garantimos que foi criado
-      return id;
+      // O listener em tempo real atualiza a lista automaticamente.
     } catch (error: any) {
       console.error('❌ Erro ao adicionar projeto:', error);
       if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {

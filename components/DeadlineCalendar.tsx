@@ -6,7 +6,11 @@ import { ProjectPayment } from '../types';
 import { projectPaymentsService } from '../src/services/firestoreService';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DeadlineCalendar: React.FC = () => {
+interface DeadlineCalendarProps {
+  compact?: boolean;
+}
+
+const DeadlineCalendar: React.FC<DeadlineCalendarProps> = ({ compact = false }) => {
   const { deadlines, projects } = useApp();
   const [activeTab, setActiveTab] = useState<'lifecycle' | 'payments'>('lifecycle');
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
@@ -65,6 +69,67 @@ const DeadlineCalendar: React.FC = () => {
     if (isUrgent(dueDate)) return 'urgent';
     return 'pending';
   };
+
+  if (compact) {
+    const orderedDeadlines = [...deadlines]
+      .sort((first, second) => new Date(first.date).getTime() - new Date(second.date).getTime())
+      .slice(0, 3);
+
+    return (
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-neutral-600">Próximos marcos</p>
+            <h3 className="mt-1 text-sm font-semibold text-neutral-200">Agenda</h3>
+          </div>
+          <div className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.07] text-emerald-300/70">
+            <Calendar size={14} />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {orderedDeadlines.map((deadline) => {
+            const date = new Date(deadline.date);
+            const urgent = isUrgent(date);
+            const overdue = isOverdue(date);
+            const dateInfo = formatDate(deadline.date);
+
+            return (
+              <div key={deadline.id} className="flex items-center gap-3 rounded-xl border border-white/[0.055] bg-black/10 p-3">
+                <div
+                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-center ${
+                    overdue
+                      ? 'border-rose-400/15 bg-rose-400/[0.07] text-rose-300'
+                      : urgent
+                        ? 'border-amber-400/15 bg-amber-400/[0.07] text-amber-300'
+                        : 'border-white/[0.07] bg-white/[0.03] text-neutral-300'
+                  }`}
+                >
+                  <div>
+                    <span className="block text-[7px] font-semibold leading-none">{dateInfo.month}</span>
+                    <span className="mt-0.5 block text-sm font-semibold leading-none">{dateInfo.day}</span>
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-neutral-300">{deadline.title}</p>
+                  <p className="mt-1 truncate text-[9px] uppercase tracking-[0.1em] text-neutral-700">
+                    {deadline.projectId} · {deadline.type}
+                  </p>
+                </div>
+                {(urgent || overdue) && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />}
+              </div>
+            );
+          })}
+
+          {orderedDeadlines.length === 0 && (
+            <div className="rounded-xl border border-dashed border-white/[0.07] py-7 text-center text-[11px] text-neutral-600">
+              Nenhum marco agendado.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

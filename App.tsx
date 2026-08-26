@@ -7,7 +7,7 @@ import AuthGate from './src/auth/AuthGate';
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-neutral-950 text-neutral-200 selection:bg-lime-500/30">
+      <div className="min-h-screen bg-[#0d100f] text-neutral-200">
         <AuthGate>
           <AppProvider>
             <MainDashboard />

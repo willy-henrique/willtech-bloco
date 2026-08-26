@@ -101,7 +101,11 @@ const saveToStorage = <T,>(key: string, data: T): void => {
   }
 };
 
-const FinanceHub: React.FC = () => {
+interface FinanceHubProps {
+  embedded?: boolean;
+}
+
+const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
   // State with localStorage persistence
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(() =>
     loadFromStorage(STORAGE_KEYS.transactions, INITIAL_TRANSACTIONS)
@@ -310,24 +314,26 @@ const FinanceHub: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 p-4 md:p-6">
+    <div className={`space-y-8 ${embedded ? '' : 'p-4 md:p-6'}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-            <Wallet className="text-lime-500" size={28} />
-            Finance Hub
-          </h1>
-          <p className="text-xs text-neutral-500 font-mono uppercase tracking-wider mt-1">
-            Controle Financeiro • Will Tech
-          </p>
-        </div>
+      <div className={`flex flex-col gap-4 sm:flex-row sm:items-center ${embedded ? 'sm:justify-end' : 'sm:justify-between'}`}>
+        {!embedded && (
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+              <Wallet className="text-emerald-300" size={28} />
+              Finance Hub
+            </h1>
+            <p className="mt-1 text-xs uppercase tracking-wider text-neutral-500">
+              Controle Financeiro • Will Tech
+            </p>
+          </div>
+        )}
         <button
           onClick={() => {
             setEditingTransaction(null);
             setIsTransactionModalOpen(true);
           }}
-          className="px-4 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2"
+          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-300 px-4 py-2.5 text-xs font-semibold text-[#07110c] transition hover:bg-emerald-200"
         >
           <Plus size={18} />
           Nova Transação
