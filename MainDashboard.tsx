@@ -13,9 +13,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign } from 'lucide-react';
 import { Project } from './types';
 import FinanceHub from './components/FinanceHub';
+import { useAuth } from './src/auth/AuthContext';
 
 const MainDashboard: React.FC = () => {
   const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
+  const { user, logout } = useAuth();
   const [mainView, setMainView] = useState<'dashboard' | 'finance'>('dashboard');
   const [mobileTab, setMobileTab] = useState<'projects' | 'tasks' | 'vault' | 'config'>('projects');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -45,7 +47,7 @@ const MainDashboard: React.FC = () => {
             <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Bell size={20} /></button>
             <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Settings size={20} /></button>
           </nav>
-          <button className="p-3 rounded-xl text-neutral-700 hover:text-red-400 mt-auto"><LogOut size={20} /></button>
+          <button onClick={logout} title={user?.email ?? undefined} aria-label="Sair" className="p-3 rounded-xl text-neutral-700 hover:text-red-400 mt-auto"><LogOut size={20} /></button>
         </aside>
         <main className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-950">
           <header className="px-4 py-4 md:px-8 md:py-6 border-b border-neutral-900 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
@@ -98,7 +100,7 @@ const MainDashboard: React.FC = () => {
           <button className="p-3 rounded-xl text-neutral-500 hover:text-white transition-colors"><Settings size={20} /></button>
         </nav>
 
-        <button className="p-3 rounded-xl text-neutral-700 hover:text-red-400 mt-auto"><LogOut size={20} /></button>
+        <button onClick={logout} title={user?.email ?? undefined} aria-label="Sair" className="p-3 rounded-xl text-neutral-700 hover:text-red-400 mt-auto"><LogOut size={20} /></button>
       </aside>
 
       {/* Main Content Area */}
