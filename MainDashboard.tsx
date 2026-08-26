@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useApp } from './AppContext';
 import CaptureChat from './src/features/capture/CaptureChat';
+import ImportarProjetos from './src/features/projects/ImportarProjetos';
 import ProjectCard from './components/ProjectCard';
 import ProjectModal from './components/ProjectModal';
 import ProjectDetails from './components/ProjectDetails';
@@ -10,7 +11,7 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign, Sparkles } from 'lucide-react';
+import { Shield, LayoutGrid, BarChart3, Settings, LogOut, Bell, Plus, Lock, Search, DollarSign, Sparkles, DownloadCloud } from 'lucide-react';
 import { Project } from './types';
 import FinanceHub from './components/FinanceHub';
 import { useAuth } from './src/auth/AuthContext';
@@ -19,6 +20,7 @@ const MainDashboard: React.FC = () => {
   const { projects, tasks, addProject, updateProject, deleteProject } = useApp();
   const { user, logout } = useAuth();
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [mainView, setMainView] = useState<'dashboard' | 'finance'>('dashboard');
   const [mobileTab, setMobileTab] = useState<'projects' | 'tasks' | 'vault' | 'config'>('projects');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -157,6 +159,14 @@ const MainDashboard: React.FC = () => {
                     <div className="w-1.5 h-1.5 rounded-full bg-lime-500 shadow-[0_0_10px_#84cc16]"></div>
                     Active Systems
                   </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsImportOpen(true)}
+                      className="px-3 py-1.5 border border-neutral-800 text-neutral-400 rounded-lg text-xs font-bold hover:border-lime-500/40 hover:text-neutral-200 transition-colors flex items-center gap-1.5"
+                    >
+                      <DownloadCloud size={14} />
+                      Importar
+                    </button>
                   <button
                     onClick={() => {
                       setEditingProject(null);
@@ -167,6 +177,7 @@ const MainDashboard: React.FC = () => {
                     <Plus size={14} />
                     Novo Projeto
                   </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {projects.map((proj) => (
@@ -312,6 +323,8 @@ const MainDashboard: React.FC = () => {
       />
 
       <CaptureChat open={isCaptureOpen} onClose={() => setIsCaptureOpen(false)} />
+
+      <ImportarProjetos open={isImportOpen} onClose={() => setIsImportOpen(false)} />
     </div>
   );
 };

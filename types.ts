@@ -39,6 +39,7 @@ export interface Project {
   stack?: string; // Stack tecnológico (ex: "React/Node", "PHP/SQL")
   aliases?: string[]; // Apelidos que voce usa ao falar do projeto (ex: ["talk", "mavotalk"])
   vocab?: string[];   // Vocabulario do dominio, para reconhecer o projeto sem citar o nome
+  repo?: string;     // "owner/repo" no GitHub, usado pelo coletor
 }
 
 export interface Snippet {
