@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Edit2, Trash2, Lock, DollarSign, FileText, 
   Calendar, AlertCircle, CheckCircle, XCircle, Copy, Eye, EyeOff,
-  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X
-} from 'lucide-react';
+  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Activity } from 'lucide-react';
 import { Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail } from '../types';
 import { 
   projectCredentialsService, 
@@ -13,6 +12,7 @@ import {
   projectNotesService,
   projectDetailsService 
 } from '../src/services/firestoreService';
+import EvolucaoProjeto from '../src/features/projects/EvolucaoProjeto';
 
 interface ProjectDetailsProps {
   project: Project;
@@ -25,13 +25,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   const [notes, setNotes] = useState<ProjectNote[]>([]);
   const [detail, setDetail] = useState<ProjectDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'credentials' | 'payments' | 'notes' | 'info'>('credentials');
+  const [activeTab, setActiveTab] = useState<'evolucao' | 'credentials' | 'payments' | 'notes' | 'info'>('evolucao');
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [isEditingDetail, setIsEditingDetail] = useState(false);
   const [showCredentialForm, setShowCredentialForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Form states
   const [credentialForm, setCredentialForm] = useState<Partial<ProjectCredential>>({});
@@ -54,19 +55,25 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [creds, pays, nots, det] = await Promise.all([
-        projectCredentialsService.getByProjectId(project.id).catch(() => []),
-        projectPaymentsService.getByProjectId(project.id).catch(() => []),
-        projectNotesService.getByProjectId(project.id).catch(() => []),
-        projectDetailsService.getByProjectId(project.id).catch(() => null)
+      const results = await Promise.allSettled([
+        projectCredentialsService.getByProjectId(project.id),
+        projectPaymentsService.getByProjectId(project.id),
+        projectNotesService.getByProjectId(project.id),
+        projectDetailsService.getByProjectId(project.id)
       ]);
-      setCredentials(creds);
-      setPayments(pays);
-      setNotes(nots);
-      setDetail(det);
-      if (det) setDetailForm(det);
+      const [creds, pays, nots, det] = results;
+      if (creds.status === 'fulfilled') setCredentials(creds.value);
+      if (pays.status === 'fulfilled') setPayments(pays.value);
+      if (nots.status === 'fulfilled') setNotes(nots.value);
+      if (det.status === 'fulfilled') {
+        setDetail(det.value);
+        if (det.value) setDetailForm(det.value);
+      }
+      const failed = ['credenciais', 'pagamentos', 'notas', 'informacoes'].filter((_, index) => results[index].status === 'rejected');
+      setActionError(failed.length ? `Nao foi possivel carregar: ${failed.join(', ')}.` : null);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      setActionError('Nao foi possivel carregar os detalhes deste projeto.');
     } finally {
       setIsLoading(false);
     }
@@ -164,18 +171,23 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       setCredentialForm({});
       setEditingItem(null);
       setShowCredentialForm(false);
-      loadData();
+      await loadData();
     } catch (error: any) {
       console.error('Erro ao salvar credencial:', error);
       const errorMessage = error?.message || 'Erro desconhecido';
-      alert(`Erro ao salvar credencial:\n\n${errorMessage}\n\nCertifique-se de que o título está preenchido.`);
+      setActionError(`Erro ao salvar credencial: ${errorMessage}`);
     }
   };
 
   const handleDeleteCredential = async (id: string) => {
     if (window.confirm('Tem certeza que deseja deletar esta credencial?')) {
-      await projectCredentialsService.delete(id);
-      loadData();
+      try {
+        setActionError(null);
+        await projectCredentialsService.delete(id);
+        await loadData();
+      } catch {
+        setActionError('Nao foi possivel excluir a credencial.');
+      }
     }
   };
 
@@ -250,10 +262,10 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       setPaymentForm({});
       setEditingItem(null);
       setShowPaymentForm(false);
-      loadData();
+      await loadData();
     } catch (error: any) {
       console.error('Erro ao salvar pagamento:', error);
-      alert(`Erro ao salvar pagamento: ${error?.message || 'Erro desconhecido'}`);
+      setActionError(`Erro ao salvar pagamento: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
@@ -279,16 +291,22 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
           paidAt: Date.now()
         });
       }
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Erro ao marcar como pago:', error);
+      setActionError('Nao foi possivel marcar o pagamento como pago.');
     }
   };
 
   const handleDeletePayment = async (id: string) => {
     if (window.confirm('Tem certeza que deseja deletar este pagamento?')) {
-      await projectPaymentsService.delete(id);
-      loadData();
+      try {
+        setActionError(null);
+        await projectPaymentsService.delete(id);
+        await loadData();
+      } catch {
+        setActionError('Nao foi possivel excluir o pagamento.');
+      }
     }
   };
 
@@ -320,17 +338,22 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       setNoteForm({});
       setEditingItem(null);
       setShowNoteForm(false);
-      loadData();
+      await loadData();
     } catch (error: any) {
       console.error('Erro ao salvar nota:', error);
-      alert(`Erro ao salvar nota: ${error?.message || 'Erro desconhecido'}`);
+      setActionError(`Erro ao salvar nota: ${error?.message || 'Erro desconhecido'}`);
     }
   };
 
   const handleDeleteNote = async (id: string) => {
     if (window.confirm('Tem certeza que deseja deletar esta nota?')) {
-      await projectNotesService.delete(id);
-      loadData();
+      try {
+        setActionError(null);
+        await projectNotesService.delete(id);
+        await loadData();
+      } catch {
+        setActionError('Nao foi possivel excluir a nota.');
+      }
     }
   };
 
@@ -347,14 +370,19 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
         stagingUrl: detailForm.stagingUrl
       } as Omit<ProjectDetail, 'createdAt' | 'updatedAt'>);
       setIsEditingDetail(false);
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Erro ao salvar detalhes:', error);
+      setActionError('Nao foi possivel salvar as informacoes do projeto.');
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      setActionError('Nao foi possivel copiar. Permita o acesso a area de transferencia.');
+    }
   };
 
   const formatCurrency = (amount?: number, currency?: string) => {
@@ -416,9 +444,17 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
         </div>
       </div>
 
+      {actionError && (
+        <div role="alert" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+          <span>{actionError}</span>
+          <button type="button" onClick={() => setActionError(null)} aria-label="Fechar erro"><X size={15} /></button>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 sm:gap-2 mb-4 md:mb-6 border-b border-neutral-800 overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0">
         {[
+          { id: 'evolucao', label: 'Evolução', icon: Activity, shortLabel: 'Evol' },
           { id: 'credentials', label: 'Credenciais', icon: Lock, shortLabel: 'Creds' },
           { id: 'payments', label: 'Pagamentos', icon: DollarSign, shortLabel: 'Pags' },
           { id: 'notes', label: 'Notas', icon: FileText, shortLabel: 'Notas' },
@@ -446,6 +482,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       {/* Content */}
       <div className="space-y-6">
         {/* CREDENCIAIS */}
+        {activeTab === 'evolucao' && <EvolucaoProjeto project={project} />}
+
         {activeTab === 'credentials' && (
           <div>
             <div className="flex items-center justify-between mb-4">

@@ -55,6 +55,7 @@ const AtualizarDoGitHub: React.FC = () => {
           ultimoCommit: resultado.ultimoCommit,
           evolucoes30d: resultado.evolucoes30d,
           correcoes30d: resultado.correcoes30d,
+          historico: resultado.historico,
         });
         gravados++;
       }

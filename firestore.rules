@@ -22,6 +22,7 @@ service cloud.firestore {
     match /project_payments/{docId}    { allow read, write: if isOwner(); }
     match /project_notes/{docId}       { allow read, write: if isOwner(); }
     match /project_details/{docId}     { allow read, write: if isOwner(); }
+    match /deadlines/{docId}           { allow read, write: if isOwner(); }
 
     // ---- Colecoes de maquina ----
     // O dono le no painel; nenhum cliente escreve.

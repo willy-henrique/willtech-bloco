@@ -15,7 +15,7 @@ import {
   Unsubscribe
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Task, Snippet, VaultItem, Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail } from '../../types';
+import { Task, Snippet, VaultItem, Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail, ContractDeadline } from '../../types';
 
 // Coleções do Firestore
 const COLLECTIONS = {
@@ -26,7 +26,8 @@ const COLLECTIONS = {
   PROJECT_CREDENTIALS: 'project_credentials',
   PROJECT_PAYMENTS: 'project_payments',
   PROJECT_NOTES: 'project_notes',
-  PROJECT_DETAILS: 'project_details'
+  PROJECT_DETAILS: 'project_details',
+  DEADLINES: 'deadlines'
 } as const;
 
 // ==================== TASKS ====================
@@ -83,16 +84,20 @@ export const tasksService = {
   },
 
   // Escutar mudanças em tempo real
-  subscribe(callback: (tasks: Task[]) => void): Unsubscribe {
+  subscribe(callback: (tasks: Task[]) => void, onError?: (error: Error) => void): Unsubscribe {
     const q = query(collection(db, COLLECTIONS.TASKS), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toMillis?.() || doc.data().createdAt
-      } as Task));
-      callback(tasks);
-    });
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const tasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toMillis?.() || doc.data().createdAt
+        } as Task));
+        callback(tasks);
+      },
+      (error) => onError?.(error)
+    );
   }
 };
 
@@ -132,15 +137,19 @@ export const snippetsService = {
     await deleteDoc(docRef);
   },
 
-  subscribe(callback: (snippets: Snippet[]) => void): Unsubscribe {
+  subscribe(callback: (snippets: Snippet[]) => void, onError?: (error: Error) => void): Unsubscribe {
     const q = query(collection(db, COLLECTIONS.SNIPPETS), orderBy('title', 'asc'));
-    return onSnapshot(q, (snapshot) => {
-      const snippets = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Snippet));
-      callback(snippets);
-    });
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const snippets = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Snippet));
+        callback(snippets);
+      },
+      (error) => onError?.(error)
+    );
   }
 };
 
@@ -189,19 +198,23 @@ export const vaultService = {
     await deleteDoc(docRef);
   },
 
-  subscribe(callback: (items: VaultItem[]) => void): Unsubscribe {
+  subscribe(callback: (items: VaultItem[]) => void, onError?: (error: Error) => void): Unsubscribe {
     const q = query(collection(db, COLLECTIONS.VAULT), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toMillis?.() || data.createdAt
-        } as VaultItem;
-      });
-      callback(items);
-    });
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const items = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toMillis?.() || data.createdAt
+          } as VaultItem;
+        });
+        callback(items);
+      },
+      (error) => onError?.(error)
+    );
   }
 };
 
@@ -270,7 +283,7 @@ export const projectsService = {
     await deleteDoc(docRef);
   },
 
-  subscribe(callback: (projects: Project[]) => void): Unsubscribe {
+  subscribe(callback: (projects: Project[]) => void, onError?: (error: Error) => void): Unsubscribe {
     let unsubscribe: Unsubscribe;
     
     try {
@@ -291,21 +304,26 @@ export const projectsService = {
         },
         (error: any) => {
           console.error('Erro no listener de projetos:', error);
+          onError?.(error);
           // Se for erro de índice, tentar sem orderBy
           if (error?.code === 'failed-precondition') {
             console.warn('Índice não criado. Usando listener sem ordenação...');
             const qWithoutOrder = query(collection(db, COLLECTIONS.PROJECTS));
-            unsubscribe = onSnapshot(qWithoutOrder, (snapshot) => {
-              const projects = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                  id: doc.id,
-                  ...data,
-                  createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-                } as Project;
-              });
-              callback(projects);
-            });
+            unsubscribe = onSnapshot(
+              qWithoutOrder,
+              (snapshot) => {
+                const projects = snapshot.docs.map(doc => {
+                  const data = doc.data();
+                  return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+                  } as Project;
+                });
+                callback(projects);
+              },
+              (fallbackError) => onError?.(fallbackError)
+            );
           }
           // Em caso de outro erro, não chamar callback para não perder os projetos atuais
         }
@@ -313,20 +331,56 @@ export const projectsService = {
     } catch (error) {
       // Se não conseguir criar query com orderBy, usar sem ordenação
       const q = query(collection(db, COLLECTIONS.PROJECTS));
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        const projects = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
-          } as Project;
-        });
-        callback(projects);
-      });
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const projects = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now()
+            } as Project;
+          });
+          callback(projects);
+        },
+        (fallbackError) => onError?.(fallbackError)
+      );
     }
     
     return unsubscribe;
+  }
+};
+
+// ==================== DEADLINES ====================
+export const deadlinesService = {
+  async getAll(): Promise<ContractDeadline[]> {
+    const q = query(collection(db, COLLECTIONS.DEADLINES), orderBy('date', 'asc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(item => ({ id: item.id, ...item.data() } as ContractDeadline));
+  },
+
+  async create(deadline: Omit<ContractDeadline, 'id'>): Promise<string> {
+    const docRef = doc(collection(db, COLLECTIONS.DEADLINES));
+    await setDoc(docRef, deadline);
+    return docRef.id;
+  },
+
+  async update(id: string, updates: Partial<ContractDeadline>): Promise<void> {
+    await updateDoc(doc(db, COLLECTIONS.DEADLINES, id), updates as any);
+  },
+
+  async delete(id: string): Promise<void> {
+    await deleteDoc(doc(db, COLLECTIONS.DEADLINES, id));
+  },
+
+  subscribe(callback: (deadlines: ContractDeadline[]) => void, onError?: (error: Error) => void): Unsubscribe {
+    const q = query(collection(db, COLLECTIONS.DEADLINES), orderBy('date', 'asc'));
+    return onSnapshot(
+      q,
+      (snapshot) => callback(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as ContractDeadline))),
+      (error) => onError?.(error)
+    );
   }
 };
 

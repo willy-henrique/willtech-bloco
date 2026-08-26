@@ -1,4 +1,11 @@
 
+/** Um commit ja classificado pelo que significa no painel. */
+export interface EventoDeCommit {
+  data: string; // YYYY-MM-DD
+  tipo: 'evoluiu' | 'corrigiu' | 'melhorou' | 'manutencao' | 'outro';
+  assunto: string;
+}
+
 // ProjectId agora é uma string para permitir projetos dinâmicos
 export type ProjectId = string;
 
@@ -45,6 +52,7 @@ export interface Project {
   ultimoCommit?: string;   // YYYY-MM-DD
   evolucoes30d?: number;
   correcoes30d?: number;
+  historico?: EventoDeCommit[];
 }
 
 export interface Snippet {
@@ -117,15 +125,7 @@ export interface ProjectDetail {
 // Finance Hub
 export type FinanceTransactionType = 'income' | 'expense';
 export type FinanceTransactionStatus = 'pending' | 'paid' | 'overdue' | 'received';
-export type FinanceCategory =
-  | 'Aluguel'
-  | 'Energia'
-  | 'Mercado'
-  | 'SaaS Subscriptions'
-  | 'Receitas de Projetos'
-  | 'Hardware'
-  | 'Software'
-  | 'Outros';
+export type FinanceCategory = string;
 
 export interface FinanceTransaction {
   id: string;

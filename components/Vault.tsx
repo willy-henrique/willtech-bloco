@@ -36,27 +36,46 @@ const Vault: React.FC<VaultProps> = ({ expanded = false }) => {
   const [visibleItems, setVisibleItems] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState({ title: '', content: '', category: 'Login' as VaultCategory });
+  const [isSaving, setIsSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const filteredItems = vaultItems.filter((item) => item.category === activeTab);
 
   const handleCopy = async (id: string, text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    window.setTimeout(() => setCopiedId(null), 1800);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      window.setTimeout(() => setCopiedId(null), 1800);
+    } catch {
+      setActionError('Nao foi possivel copiar o segredo. Permita o acesso a area de transferencia.');
+    }
   };
 
   const handleAdd = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!newItem.title.trim() || !newItem.content.trim()) return;
-    await addVaultItem({ ...newItem, title: newItem.title.trim(), content: newItem.content.trim() });
-    setActiveTab(newItem.category);
-    setNewItem({ title: '', content: '', category: activeTab });
-    setIsAdding(false);
+    setIsSaving(true);
+    setActionError(null);
+    try {
+      await addVaultItem({ ...newItem, title: newItem.title.trim(), content: newItem.content.trim() });
+      setActiveTab(newItem.category);
+      setNewItem({ title: '', content: '', category: activeTab });
+      setIsAdding(false);
+    } catch {
+      setActionError('O item nao foi salvo no cofre. Tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Remover "${title}" do cofre?`)) return;
-    await deleteVaultItem(id);
+    setActionError(null);
+    try {
+      await deleteVaultItem(id);
+    } catch {
+      setActionError('O item nao foi excluido do cofre. Tente novamente.');
+    }
   };
 
   return (
@@ -84,6 +103,8 @@ const Vault: React.FC<VaultProps> = ({ expanded = false }) => {
           {isAdding ? 'Cancelar' : 'Guardar item'}
         </button>
       </div>
+
+      {actionError && <p role="alert" className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
 
       <div className="mt-6 flex gap-1 overflow-x-auto rounded-[14px] border border-white/[0.06] bg-black/10 p-1 scrollbar-hide">
         {CATEGORIES.map(({ id, label, icon: Icon }) => {
@@ -155,10 +176,10 @@ const Vault: React.FC<VaultProps> = ({ expanded = false }) => {
               <div className="mt-3 flex justify-end">
                 <button
                   type="submit"
-                  disabled={!newItem.title.trim() || !newItem.content.trim()}
+                  disabled={isSaving || !newItem.title.trim() || !newItem.content.trim()}
                   className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-4 py-2.5 text-xs font-semibold text-[#07110c] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  <ShieldCheck size={15} /> Proteger no cofre
+                  <ShieldCheck size={15} /> {isSaving ? 'Salvando...' : 'Proteger no cofre'}
                 </button>
               </div>
             </div>

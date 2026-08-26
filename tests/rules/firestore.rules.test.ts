@@ -21,7 +21,7 @@ const OWNER_EMAIL = emailMatch[1];
 
 const HUMAN_COLLECTIONS = [
   'projects', 'tasks', 'snippets', 'vault',
-  'project_credentials', 'project_payments', 'project_notes', 'project_details',
+  'project_credentials', 'project_payments', 'project_notes', 'project_details', 'deadlines',
 ];
 
 const MACHINE_COLLECTIONS = [

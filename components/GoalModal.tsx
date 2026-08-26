@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Trash2, Target } from 'lucide-react';
 import { FinanceGoal } from '../types';
+import { parseBrazilianMoney } from '../src/features/finance/financeUtils';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -39,8 +40,9 @@ const GoalModal: React.FC<GoalModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const target = parseFloat(targetAmount.replace(/,/g, '.').replace(/\s/g, ''));
-    const current = parseFloat(currentAmount.replace(/,/g, '.').replace(/\s/g, '')) || 0;
+    const target = parseBrazilianMoney(targetAmount);
+    const parsedCurrent = parseBrazilianMoney(currentAmount);
+    const current = Number.isNaN(parsedCurrent) ? 0 : parsedCurrent;
     if (!title.trim() || isNaN(target) || target <= 0) return;
     onSave({
       title: title.trim(),

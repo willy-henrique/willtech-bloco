@@ -30,8 +30,10 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
     stack: 'React/Node'
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
+    setActionError(null);
     if (project) {
       setFormData({
         name: project.name,
@@ -56,6 +58,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setActionError(null);
     try {
       if (project && onUpdate) {
         await onUpdate(project.id, formData);
@@ -65,6 +68,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Erro ao salvar projeto:', error);
+      setActionError('O projeto nao foi salvo. Revise a conexao e tente novamente.');
     } finally {
       setIsSaving(false);
     }
@@ -74,10 +78,12 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
     if (!project || !onDelete) return;
     if (window.confirm(`Tem certeza que deseja deletar o projeto "${project.name}"?`)) {
       try {
+        setActionError(null);
         await onDelete(project.id);
         onClose();
       } catch (error) {
         console.error('Erro ao deletar projeto:', error);
+        setActionError('O projeto nao foi excluido. Tente novamente.');
       }
     }
   };
@@ -125,28 +131,33 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div role="dialog" aria-modal="true" aria-labelledby="project-modal-title" className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 id="project-modal-title" className="text-2xl font-bold text-white">
                   {project ? 'Editar Projeto' : 'Novo Projeto'}
                 </h2>
                 <button
+                  type="button"
                   onClick={onClose}
+                  aria-label="Fechar modal de projeto"
                   className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
+              {actionError && <p role="alert" className="mb-5 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">{actionError}</p>}
+
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Nome */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="project-name" className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Nome do Projeto
                   </label>
                   <input
+                    id="project-name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -158,10 +169,11 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
 
                 {/* Tipo */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="project-type" className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Tipo
                   </label>
                   <input
+                    id="project-type"
                     type="text"
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -174,10 +186,11 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                 {/* Status e Progresso */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    <label htmlFor="project-status" className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                       Status
                     </label>
                     <select
+                      id="project-status"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                       className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-lime-500 transition-colors"
@@ -189,10 +202,11 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    <label htmlFor="project-progress" className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                       Progresso ({formData.progress}%)
                     </label>
                     <input
+                      id="project-progress"
                       type="range"
                       min="0"
                       max="100"
@@ -205,7 +219,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
 
                 {/* Stack */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  <label htmlFor="project-stack" className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Stack Tecnológico
                   </label>
                   <div className="flex flex-wrap gap-2 mb-2">
@@ -225,6 +239,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                     ))}
                   </div>
                   <input
+                    id="project-stack"
                     type="text"
                     value={formData.stack}
                     onChange={(e) => setFormData({ ...formData, stack: e.target.value })}

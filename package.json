@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run src",
-    "test:watch": "vitest src",
+    "test": "vitest run src api",
+    "test:watch": "vitest src api",
     "test:rules": "firebase emulators:exec --only firestore --project willtech-rules-test \"vitest run tests/rules\""
   },
   "dependencies": {

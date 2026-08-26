@@ -2,27 +2,51 @@
 import React, { useState } from 'react';
 import { useApp } from '../AppContext';
 import { Snippet } from '../types';
-import { Copy, Database, Code, Plus, Check } from 'lucide-react';
+import { Copy, Database, Code, Plus, Check, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SnippetManager: React.FC = () => {
-  const { snippets, addSnippet } = useApp();
+  const { snippets, addSnippet, deleteSnippet } = useApp();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newSnippet, setNewSnippet] = useState({ title: '', code: '', language: 'sql', description: '' });
+  const [isSaving, setIsSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const handleCopy = (id: string, code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const handleCopy = async (id: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      setActionError('Nao foi possivel copiar. Permita o acesso a area de transferencia.');
+    }
   };
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSnippet.title || !newSnippet.code) return;
-    addSnippet(newSnippet);
-    setNewSnippet({ title: '', code: '', language: 'sql', description: '' });
-    setIsAdding(false);
+    setIsSaving(true);
+    setActionError(null);
+    try {
+      await addSnippet(newSnippet);
+      setNewSnippet({ title: '', code: '', language: 'sql', description: '' });
+      setIsAdding(false);
+    } catch {
+      setActionError('O snippet nao foi salvo. Revise a conexao e tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (snippet: Snippet) => {
+    if (!confirm(`Excluir o snippet "${snippet.title}"?`)) return;
+    setActionError(null);
+    try {
+      await deleteSnippet(snippet.id);
+    } catch {
+      setActionError('O snippet nao foi excluido. Tente novamente.');
+    }
   };
 
   return (
@@ -32,12 +56,15 @@ const SnippetManager: React.FC = () => {
           <Database size={16} className="text-blue-400" /> Snippets & Queries
         </h3>
         <button 
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => { setActionError(null); setIsAdding(!isAdding); }}
+          aria-label={isAdding ? 'Fechar formulario de snippet' : 'Adicionar snippet'}
           className="p-1.5 rounded-lg bg-lime-500/10 text-lime-400 hover:bg-lime-500 hover:text-black transition-all"
         >
           <Plus size={16} />
         </button>
       </div>
+
+      {actionError && <p role="alert" className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
 
       <AnimatePresence>
         {isAdding && (
@@ -62,7 +89,7 @@ const SnippetManager: React.FC = () => {
               onChange={e => setNewSnippet({...newSnippet, code: e.target.value})}
             />
             <div className="flex gap-2">
-              <button type="submit" className="flex-1 py-2 bg-lime-500 text-black text-xs font-bold rounded hover:bg-lime-400 transition-colors">SAVE SNIPPET</button>
+              <button type="submit" disabled={isSaving} className="flex-1 py-2 bg-lime-500 text-black text-xs font-bold rounded hover:bg-lime-400 transition-colors disabled:cursor-wait disabled:opacity-60">{isSaving ? 'SALVANDO...' : 'SALVAR SNIPPET'}</button>
               <button type="button" onClick={() => setIsAdding(false)} className="px-4 py-2 bg-neutral-800 text-neutral-400 text-xs font-bold rounded hover:bg-neutral-700">CANCEL</button>
             </div>
           </motion.form>
@@ -77,12 +104,14 @@ const SnippetManager: React.FC = () => {
                 <Code size={14} className="text-neutral-500" />
                 <h4 className="text-xs font-bold text-neutral-200">{snippet.title}</h4>
               </div>
-              <button 
-                onClick={() => handleCopy(snippet.id, snippet.code)}
-                className="text-neutral-600 hover:text-white transition-colors"
-              >
-                {copiedId === snippet.id ? <Check size={14} className="text-lime-500" /> : <Copy size={14} />}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => handleCopy(snippet.id, snippet.code)} aria-label={`Copiar ${snippet.title}`} className="text-neutral-600 hover:text-white transition-colors">
+                  {copiedId === snippet.id ? <Check size={14} className="text-lime-500" /> : <Copy size={14} />}
+                </button>
+                <button onClick={() => handleDelete(snippet)} aria-label={`Excluir ${snippet.title}`} className="text-neutral-700 transition-colors hover:text-red-400">
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
             {snippet.description && <p className="text-[10px] text-neutral-500 mb-3 italic">{snippet.description}</p>}
             <pre className="bg-neutral-950 p-3 rounded-lg text-[11px] font-mono text-blue-300 overflow-x-auto border border-neutral-800">

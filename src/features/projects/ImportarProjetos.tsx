@@ -35,6 +35,10 @@ const ImportarProjetos: React.FC<{ open: boolean; onClose: () => void }> = ({ op
           aliases: item.aliases,
           vocab: item.vocab,
           ...(item.repo ? { repo: item.repo } : {}),
+          ultimoCommit: item.ultimoCommit,
+          evolucoes30d: item.evolucoes30d,
+          correcoes30d: item.correcoes30d,
+          historico: item.historico,
         });
         setProgresso(++feitos);
       }

@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  AlertTriangle,
   ArrowRight,
   Blocks,
-  CalendarDays,
   CheckCircle2,
   ChevronRight,
-  CircleDollarSign,
   Code2,
   DownloadCloud,
   FolderKanban,
@@ -96,6 +95,8 @@ const MainDashboard: React.FC = () => {
     updateProject,
     deleteProject,
     toggleTask,
+    dataError,
+    clearDataError,
   } = useApp();
   const { user, logout } = useAuth();
   const [activeView, setActiveView] = useState<View>('overview');
@@ -420,6 +421,15 @@ const MainDashboard: React.FC = () => {
 
         <div className="custom-scrollbar flex-1 overflow-y-auto">
           <div className="mx-auto max-w-[1540px] px-4 pb-28 pt-6 md:px-7 md:pt-8 lg:px-9 lg:pb-10">
+            {dataError && (
+              <div role="alert" className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-100">
+                <AlertTriangle className="mt-0.5 shrink-0 text-amber-300" size={17} />
+                <p className="min-w-0 flex-1 leading-5">{dataError}</p>
+                <button type="button" onClick={clearDataError} aria-label="Fechar aviso" className="rounded-lg p-1 text-amber-200/60 transition hover:bg-amber-300/10 hover:text-amber-100">
+                  <X size={15} />
+                </button>
+              </div>
+            )}
             {activeView === 'overview' && (
               <div className="space-y-6 md:space-y-8">
                 <section className="overview-hero relative overflow-hidden rounded-[28px] border border-white/[0.075] px-5 py-6 md:px-7 md:py-7">

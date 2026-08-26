@@ -157,7 +157,7 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
     let receivables = 0;
     let payables = 0;
 
-    transactions.forEach((t) => {
+    filteredTransactions.forEach((t) => {
       const due = new Date(t.dueDate);
       if (t.type === 'income') {
         if (t.status === 'received') {
@@ -183,17 +183,17 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
       receivables30: receivables,
       payablesTodayTomorrow: payables,
     };
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   const categoryTotals = useMemo(() => {
     const map: Record<string, number> = {};
-    transactions
+    filteredTransactions
       .filter((t) => t.type === 'expense' && t.status === 'paid')
       .forEach((t) => {
         map[t.category] = (map[t.category] || 0) + t.amount;
       });
     return map;
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   const donutTotal = useMemo(() => Object.values(categoryTotals).reduce((a, b) => a + b, 0), [categoryTotals]);
 
@@ -210,7 +210,7 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
       let inflows = 0;
       let outflows = 0;
 
-      transactions.forEach((t) => {
+      filteredTransactions.forEach((t) => {
         if (t.dueDate.startsWith(monthStr)) {
           if (t.type === 'income' && t.status === 'received') {
             inflows += t.amount;
@@ -224,7 +224,7 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
     }
 
     return months;
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   const formatCurrency = (value: number, currency = 'BRL') =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
@@ -717,6 +717,7 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
         onSave={handleSaveTransaction}
         onDelete={handleDeleteTransaction}
         transaction={editingTransaction}
+        categories={allCategories}
       />
 
       <GoalModal

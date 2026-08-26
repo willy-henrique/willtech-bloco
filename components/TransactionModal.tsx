@@ -7,6 +7,7 @@ import {
   FinanceTransactionType,
   FinanceTransactionStatus,
 } from '../types';
+import { parseBrazilianMoney } from '../src/features/finance/financeUtils';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface TransactionModalProps {
   onSave: (data: Omit<FinanceTransaction, 'id' | 'createdAt'>) => void;
   onDelete?: (id: string) => void;
   transaction: FinanceTransaction | null;
+  categories?: FinanceCategory[];
 }
 
 const CATEGORIES: FinanceCategory[] = [
@@ -33,6 +35,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   onSave,
   onDelete,
   transaction,
+  categories = CATEGORIES,
 }) => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<FinanceCategory>('Outros');
@@ -64,7 +67,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const num = parseFloat(amount.replace(/,/g, '.').replace(/\s/g, ''));
+    const num = parseBrazilianMoney(amount);
     if (!description.trim() || isNaN(num) || num <= 0 || !dueDate) return;
     onSave({
       description: description.trim(),
@@ -155,7 +158,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                   onChange={(e) => setCategory(e.target.value as FinanceCategory)}
                   className={inputClass}
                 >
-                  {CATEGORIES.map((c) => (
+                  {Array.from(new Set([...categories, category])).map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>

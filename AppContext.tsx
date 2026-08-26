@@ -1,9 +1,13 @@
-
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Project, Task, Snippet, ContractDeadline, ProjectId, TaskPriority, VaultItem } from './types';
-import { INITIAL_PROJECTS, INITIAL_SNIPPETS, INITIAL_DEADLINES } from './constants';
-import { tasksService, snippetsService, vaultService, projectsService } from './src/services/firestoreService';
-import './src/config/firebase'; // Inicializa Firebase
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { ContractDeadline, Project, ProjectId, Snippet, Task, TaskPriority, VaultItem } from './types';
+import {
+  deadlinesService,
+  projectsService,
+  snippetsService,
+  tasksService,
+  vaultService,
+} from './src/services/firestoreService';
+import './src/config/firebase';
 
 interface AppContextType {
   projects: Project[];
@@ -12,10 +16,16 @@ interface AppContextType {
   deadlines: ContractDeadline[];
   vaultItems: VaultItem[];
   isLoading: boolean;
+  dataError: string | null;
+  clearDataError: () => void;
   addTask: (projectId: ProjectId, description: string, priority?: TaskPriority) => Promise<void>;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   addSnippet: (snippet: Omit<Snippet, 'id'>) => Promise<void>;
+  deleteSnippet: (id: string) => Promise<void>;
+  addDeadline: (deadline: Omit<ContractDeadline, 'id'>) => Promise<void>;
+  updateDeadline: (id: string, updates: Partial<ContractDeadline>) => Promise<void>;
+  deleteDeadline: (id: string) => Promise<void>;
   addVaultItem: (item: Omit<VaultItem, 'id' | 'createdAt'>) => Promise<void>;
   deleteVaultItem: (id: string) => Promise<void>;
   addProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
@@ -25,225 +35,170 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const CACHE_KEYS = {
+  projects: 'wt_projects',
+  tasks: 'wt_tasks',
+  snippets: 'wt_snippets',
+  vaultItems: 'wt_vault',
+  deadlines: 'wt_deadlines',
+} as const;
+
+type CacheKey = keyof typeof CACHE_KEYS;
+
+const readCache = <T,>(key: CacheKey): T[] => {
+  try {
+    const saved = localStorage.getItem(CACHE_KEYS[key]);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeCache = (key: CacheKey, value: unknown[]) => {
+  try {
+    localStorage.setItem(CACHE_KEYS[key], JSON.stringify(value));
+  } catch {
+    // Cache indisponivel nao deve interromper a aplicacao.
+  }
+};
+
+const readableError = (action: string, error: unknown) => {
+  const code = typeof error === 'object' && error && 'code' in error ? String(error.code) : '';
+  if (code.includes('permission-denied')) {
+    return `${action}: sua conta nao tem permissao no Firestore. Revise as regras publicadas.`;
+  }
+  if (code.includes('unavailable')) {
+    return `${action}: o banco esta indisponivel. Os ultimos dados salvos continuam visiveis.`;
+  }
+  return `${action}. Verifique sua conexao e tente novamente.`;
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [vaultItems, setVaultItems] = useState<VaultItem[]>([]);
-  const [deadlines] = useState<ContractDeadline[]>(INITIAL_DEADLINES);
+  const [deadlines, setDeadlines] = useState<ContractDeadline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
-  // Inicializar dados do Firestore e configurar listeners em tempo real
+  const clearDataError = useCallback(() => setDataError(null), []);
+  const reportError = useCallback((action: string, error: unknown) => {
+    console.error(action, error);
+    setDataError(readableError(action, error));
+  }, []);
+
   useEffect(() => {
-    let unsubscribeProjects: (() => void) | null = null;
-    let unsubscribeTasks: (() => void) | null = null;
-    let unsubscribeSnippets: (() => void) | null = null;
-    let unsubscribeVault: (() => void) | null = null;
+    let cancelled = false;
+    const cleanups: Array<() => void> = [];
 
     const initializeData = async () => {
-      try {
-        // Carregar dados iniciais
-        const [initialProjects, initialTasks, initialSnippets, initialVault] = await Promise.all([
-          projectsService.getAll().catch(() => []),
-          tasksService.getAll().catch(() => []),
-          snippetsService.getAll().catch(() => INITIAL_SNIPPETS),
-          vaultService.getAll().catch(() => [])
-        ]);
+      const loaders = [
+        { key: 'projects' as const, load: projectsService.getAll, set: setProjects },
+        { key: 'tasks' as const, load: tasksService.getAll, set: setTasks },
+        { key: 'snippets' as const, load: snippetsService.getAll, set: setSnippets },
+        { key: 'vaultItems' as const, load: vaultService.getAll, set: setVaultItems },
+        { key: 'deadlines' as const, load: deadlinesService.getAll, set: setDeadlines },
+      ];
 
-        // Se não houver projetos no Firestore, tentar migrar os iniciais
-        if (initialProjects.length === 0) {
-          // Migrar projetos iniciais para o Firestore apenas se não houver erro de permissão
-          const migratedProjects: Project[] = [];
-          let hasPermissionError = false;
-          
-          for (const project of INITIAL_PROJECTS) {
-            try {
-              const id = await projectsService.create(project);
-              migratedProjects.push({ ...project, id, createdAt: Date.now() });
-            } catch (error: any) {
-              console.error('Erro ao migrar projeto:', error);
-              if (error?.code === 'permission-denied') {
-                console.warn('⚠️ Não foi possível migrar projetos. Configure as regras do Firestore!');
-                hasPermissionError = true;
-                break; // Para de tentar migrar se não tiver permissão
-              }
-            }
-          }
-          
-          // Só usar projetos migrados se não houve erro de permissão e conseguiu migrar pelo menos um
-          if (!hasPermissionError && migratedProjects.length > 0) {
-            setProjects(migratedProjects);
-          } else if (hasPermissionError) {
-            // Se não tem permissão, usar projetos iniciais como fallback temporário
-            setProjects(INITIAL_PROJECTS.map(p => ({ ...p, id: Math.random().toString(36), createdAt: Date.now() })));
-          } else {
-            // Se não conseguiu migrar mas não foi erro de permissão, deixar vazio
-            setProjects([]);
-          }
+      const results = await Promise.allSettled(loaders.map(({ load }) => load()));
+      if (cancelled) return;
+
+      const failed: string[] = [];
+      results.forEach((result, index) => {
+        const loader = loaders[index];
+        if (result.status === 'fulfilled') {
+          (loader.set as React.Dispatch<React.SetStateAction<any[]>>)(result.value);
+          writeCache(loader.key, result.value);
         } else {
-          // Se já tem projetos no Firestore, usar eles
-          setProjects(initialProjects);
+          failed.push(loader.key);
+          (loader.set as React.Dispatch<React.SetStateAction<any[]>>)(readCache(loader.key));
+          console.error(`Falha ao carregar ${loader.key}`, result.reason);
         }
-
-        setTasks(initialTasks);
-        setSnippets(initialSnippets.length > 0 ? initialSnippets : INITIAL_SNIPPETS);
-        setVaultItems(initialVault);
-        setIsLoading(false);
-
-        // Configurar listeners em tempo real
-        unsubscribeProjects = projectsService.subscribe((updatedProjects) => {
-          // Sempre usar os projetos do Firestore, nunca substituir por INITIAL_PROJECTS
-          // Se estiver vazio, pode ser que realmente não tenha projetos ou erro de permissão
-          setProjects(updatedProjects);
-        });
-
-        unsubscribeTasks = tasksService.subscribe((updatedTasks) => {
-          setTasks(updatedTasks);
-        });
-
-        unsubscribeSnippets = snippetsService.subscribe((updatedSnippets) => {
-          setSnippets(updatedSnippets.length > 0 ? updatedSnippets : INITIAL_SNIPPETS);
-        });
-
-        unsubscribeVault = vaultService.subscribe((updatedVault) => {
-          setVaultItems(updatedVault);
-        });
-      } catch (error) {
-        console.error('Erro ao inicializar dados do Firestore:', error);
-        setIsLoading(false);
-        // Fallback para localStorage em caso de erro
-        const savedProjects = localStorage.getItem('wt_projects');
-        const savedTasks = localStorage.getItem('wt_tasks');
-        const savedSnippets = localStorage.getItem('wt_snippets');
-        const savedVault = localStorage.getItem('wt_vault');
-        
-        if (savedProjects) {
-          const parsed = JSON.parse(savedProjects);
-          setProjects(parsed);
-        } else {
-          // Usar projetos iniciais apenas como último recurso
-          setProjects(INITIAL_PROJECTS.map(p => ({ ...p, id: Math.random().toString(36), createdAt: Date.now() })));
-        }
-        if (savedTasks) setTasks(JSON.parse(savedTasks));
-        if (savedSnippets) setSnippets(JSON.parse(savedSnippets));
-        else setSnippets(INITIAL_SNIPPETS);
-        if (savedVault) setVaultItems(JSON.parse(savedVault));
-      }
-    };
-
-    initializeData();
-
-    // Cleanup: remover listeners ao desmontar
-    return () => {
-      if (unsubscribeProjects) unsubscribeProjects();
-      if (unsubscribeTasks) unsubscribeTasks();
-      if (unsubscribeSnippets) unsubscribeSnippets();
-      if (unsubscribeVault) unsubscribeVault();
-    };
-  }, []);
-
-  const addTask = useCallback(async (projectId: ProjectId, description: string, priority: TaskPriority = TaskPriority.NORMAL) => {
-    try {
-      await tasksService.create({
-        projectId,
-        description,
-        priority,
-        isCompleted: false,
-        createdAt: Date.now()
       });
+
+      if (failed.length) {
+        setDataError(`Nao foi possivel sincronizar: ${failed.join(', ')}. Exibindo o ultimo cache disponivel.`);
+      }
+      setIsLoading(false);
+
+      const listenerError = (resource: string) => (error: Error) => reportError(`Falha ao sincronizar ${resource}`, error);
+      cleanups.push(
+        projectsService.subscribe((value) => { setProjects(value); writeCache('projects', value); }, listenerError('projetos')),
+        tasksService.subscribe((value) => { setTasks(value); writeCache('tasks', value); }, listenerError('tarefas')),
+        snippetsService.subscribe((value) => { setSnippets(value); writeCache('snippets', value); }, listenerError('snippets')),
+        vaultService.subscribe((value) => { setVaultItems(value); writeCache('vaultItems', value); }, listenerError('cofre')),
+        deadlinesService.subscribe((value) => { setDeadlines(value); writeCache('deadlines', value); }, listenerError('agenda')),
+      );
+    };
+
+    initializeData().catch((error) => {
+      if (!cancelled) {
+        reportError('Falha ao inicializar os dados', error);
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }, [reportError]);
+
+  const runAction = useCallback(async (action: string, operation: () => Promise<unknown>) => {
+    setDataError(null);
+    try {
+      await operation();
     } catch (error) {
-      console.error('Erro ao adicionar tarefa:', error);
+      reportError(action, error);
       throw error;
     }
-  }, []);
+  }, [reportError]);
+
+  const addTask = useCallback((projectId: ProjectId, description: string, priority: TaskPriority = TaskPriority.NORMAL) =>
+    runAction('Nao foi possivel adicionar a tarefa', () => tasksService.create({
+      projectId,
+      description,
+      priority,
+      isCompleted: false,
+      createdAt: Date.now(),
+    })), [runAction]);
 
   const toggleTask = useCallback(async (taskId: string) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        await tasksService.update(taskId, { isCompleted: !task.isCompleted });
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error);
-      throw error;
-    }
-  }, [tasks]);
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task) throw new Error('Tarefa nao encontrada');
+    await runAction('Nao foi possivel atualizar a tarefa', () => tasksService.update(taskId, { isCompleted: !task.isCompleted }));
+  }, [runAction, tasks]);
 
-  const deleteTask = useCallback(async (taskId: string) => {
-    try {
-      await tasksService.delete(taskId);
-    } catch (error) {
-      console.error('Erro ao deletar tarefa:', error);
-      throw error;
-    }
-  }, []);
-
-  const addSnippet = useCallback(async (snippet: Omit<Snippet, 'id'>) => {
-    try {
-      await snippetsService.create(snippet);
-    } catch (error) {
-      console.error('Erro ao adicionar snippet:', error);
-      throw error;
-    }
-  }, []);
-
-  const addVaultItem = useCallback(async (item: Omit<VaultItem, 'id' | 'createdAt'>) => {
-    try {
-      await vaultService.create(item);
-    } catch (error) {
-      console.error('Erro ao adicionar item ao vault:', error);
-      throw error;
-    }
-  }, []);
-
-  const deleteVaultItem = useCallback(async (id: string) => {
-    try {
-      await vaultService.delete(id);
-    } catch (error) {
-      console.error('Erro ao deletar item do vault:', error);
-      throw error;
-    }
-  }, []);
-
-  const addProject = useCallback(async (project: Omit<Project, 'id' | 'createdAt'>) => {
-    try {
-      const id = await projectsService.create(project);
-      console.log('✅ Projeto criado com sucesso:', id);
-      // O listener em tempo real atualiza a lista automaticamente.
-    } catch (error: any) {
-      console.error('❌ Erro ao adicionar projeto:', error);
-      if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
-        alert('❌ Erro de permissão! Configure as regras do Firestore.\n\nVeja o arquivo CONFIGURAR_FIRESTORE.md para instruções.');
-      } else if (error?.code === 'failed-precondition') {
-        alert('⚠️ Índice do Firestore não criado. O projeto foi criado, mas pode não aparecer imediatamente.\n\nCrie o índice seguindo o link no console.');
-      }
-      throw error;
-    }
-  }, []);
-
-  const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
-    try {
-      await projectsService.update(id, updates);
-    } catch (error) {
-      console.error('Erro ao atualizar projeto:', error);
-      throw error;
-    }
-  }, []);
-
-  const deleteProject = useCallback(async (id: string) => {
-    try {
-      await projectsService.delete(id);
-    } catch (error) {
-      console.error('Erro ao deletar projeto:', error);
-      throw error;
-    }
-  }, []);
+  const deleteTask = useCallback((id: string) =>
+    runAction('Nao foi possivel excluir a tarefa', () => tasksService.delete(id)), [runAction]);
+  const addSnippet = useCallback((snippet: Omit<Snippet, 'id'>) =>
+    runAction('Nao foi possivel salvar o snippet', () => snippetsService.create(snippet)), [runAction]);
+  const deleteSnippet = useCallback((id: string) =>
+    runAction('Nao foi possivel excluir o snippet', () => snippetsService.delete(id)), [runAction]);
+  const addDeadline = useCallback((deadline: Omit<ContractDeadline, 'id'>) =>
+    runAction('Nao foi possivel salvar o marco', () => deadlinesService.create(deadline)), [runAction]);
+  const updateDeadline = useCallback((id: string, updates: Partial<ContractDeadline>) =>
+    runAction('Nao foi possivel atualizar o marco', () => deadlinesService.update(id, updates)), [runAction]);
+  const deleteDeadline = useCallback((id: string) =>
+    runAction('Nao foi possivel excluir o marco', () => deadlinesService.delete(id)), [runAction]);
+  const addVaultItem = useCallback((item: Omit<VaultItem, 'id' | 'createdAt'>) =>
+    runAction('Nao foi possivel salvar o item no cofre', () => vaultService.create(item)), [runAction]);
+  const deleteVaultItem = useCallback((id: string) =>
+    runAction('Nao foi possivel excluir o item do cofre', () => vaultService.delete(id)), [runAction]);
+  const addProject = useCallback((project: Omit<Project, 'id' | 'createdAt'>) =>
+    runAction('Nao foi possivel adicionar o projeto', () => projectsService.create(project)), [runAction]);
+  const updateProject = useCallback((id: string, updates: Partial<Project>) =>
+    runAction('Nao foi possivel atualizar o projeto', () => projectsService.update(id, updates)), [runAction]);
+  const deleteProject = useCallback((id: string) =>
+    runAction('Nao foi possivel excluir o projeto', () => projectsService.delete(id)), [runAction]);
 
   return (
-    <AppContext.Provider value={{ 
-      projects, tasks, snippets, deadlines, vaultItems, isLoading,
-      addTask, toggleTask, deleteTask, addSnippet, addVaultItem, deleteVaultItem,
-      addProject, updateProject, deleteProject
+    <AppContext.Provider value={{
+      projects, tasks, snippets, deadlines, vaultItems, isLoading, dataError, clearDataError,
+      addTask, toggleTask, deleteTask, addSnippet, deleteSnippet,
+      addDeadline, updateDeadline, deleteDeadline,
+      addVaultItem, deleteVaultItem, addProject, updateProject, deleteProject,
     }}>
       {children}
     </AppContext.Provider>

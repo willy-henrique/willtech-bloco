@@ -1,11 +1,5 @@
-/** Um commit já classificado pelo que ele significa no painel. */
-export interface EventoDeCommit {
-  /** YYYY-MM-DD */
-  data: string;
-  tipo: 'evoluiu' | 'corrigiu' | 'melhorou' | 'manutencao' | 'outro';
-  /** Assunto do commit sem o prefixo "feat(escopo):". */
-  assunto: string;
-}
+export type { EventoDeCommit } from '../../../types';
+import type { EventoDeCommit } from '../../../types';
 
 /**
  * Um projeto como o gerador o enxerga a partir do repositório local.

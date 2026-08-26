@@ -94,6 +94,7 @@ const EisenhowerMatrix: React.FC = () => {
     [TaskPriority.NORMAL]: '',
     [TaskPriority.LOW]: '',
   });
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const openTasks = tasks.filter((task) => !task.isCompleted);
   const filterTasks = (priority: TaskPriority) => openTasks.filter((task) => task.priority === priority);
@@ -103,11 +104,13 @@ const EisenhowerMatrix: React.FC = () => {
     if (!description) return;
 
     try {
+      setActionError(null);
       await addTask('Geral', description, priority);
       setNewTaskText((current) => ({ ...current, [priority]: '' }));
       setEditingQuadrant(null);
     } catch (error) {
       console.error('Erro ao adicionar tarefa:', error);
+      setActionError('A tarefa nao foi adicionada. Revise a conexao e tente novamente.');
     }
   };
 
@@ -115,8 +118,29 @@ const EisenhowerMatrix: React.FC = () => {
     const quadrantTasks = filterTasks(priority);
     if (!window.confirm(`Excluir as ${quadrantTasks.length} tarefas desta área? Essa ação não pode ser desfeita.`)) return;
 
-    for (const task of quadrantTasks) {
-      await deleteTask(task.id);
+    try {
+      setActionError(null);
+      await Promise.all(quadrantTasks.map((task) => deleteTask(task.id)));
+    } catch {
+      setActionError('Nem todas as tarefas puderam ser excluidas. Tente novamente.');
+    }
+  };
+
+  const handleToggle = async (taskId: string) => {
+    try {
+      setActionError(null);
+      await toggleTask(taskId);
+    } catch {
+      setActionError('A tarefa nao foi atualizada. Tente novamente.');
+    }
+  };
+
+  const handleDelete = async (taskId: string) => {
+    try {
+      setActionError(null);
+      await deleteTask(taskId);
+    } catch {
+      setActionError('A tarefa nao foi excluida. Tente novamente.');
     }
   };
 
@@ -135,6 +159,8 @@ const EisenhowerMatrix: React.FC = () => {
         </div>
       </div>
 
+      {actionError && <p role="alert" className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
+
       <div className="grid gap-3 lg:grid-cols-2">
         {QUADRANTS.map((quadrant) => (
           <Quadrant
@@ -151,8 +177,8 @@ const EisenhowerMatrix: React.FC = () => {
               setNewTaskText((current) => ({ ...current, [quadrant.priority]: '' }));
             }}
             onAdd={() => void handleAddTask(quadrant.priority)}
-            onToggle={(taskId) => void toggleTask(taskId)}
-            onDelete={(taskId) => void deleteTask(taskId)}
+            onToggle={(taskId) => void handleToggle(taskId)}
+            onDelete={(taskId) => void handleDelete(taskId)}
             onClear={() => void handleClearAll(quadrant.priority)}
           />
         ))}

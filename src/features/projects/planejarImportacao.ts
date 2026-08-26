@@ -173,6 +173,7 @@ export function planejarImportacao(
       patch.ultimoCommit = item.ultimoCommit;
       patch.evolucoes30d = item.evolucoes30d;
       patch.correcoes30d = item.correcoes30d;
+      patch.historico = item.historico;
       mudancas.push(`atividade: ${item.evolucoes30d} evoluções, ${item.correcoes30d} correções`);
     }
 
