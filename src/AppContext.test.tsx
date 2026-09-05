@@ -33,6 +33,7 @@ const Probe = () => {
 };
 
 beforeEach(() => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   localStorage.clear();
   Object.values(mocks).forEach((service) => {
     service.getAll.mockReset().mockResolvedValue([]);

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -62,14 +62,14 @@ describe('AuthProvider — sessão', () => {
 
   it('sai do carregando quando o Firebase responde que não há ninguém', async () => {
     montar();
-    avisarSessao(null);
+    act(() => avisarSessao(null));
     await waitFor(() => expect(screen.getByTestId('loading')).toHaveTextContent('false'));
     expect(screen.getByTestId('user')).toHaveTextContent('nenhum');
   });
 
   it('publica o usuário quando há sessão', async () => {
     montar();
-    avisarSessao({ uid: 'abc123' });
+    act(() => avisarSessao({ uid: 'abc123' }));
     await waitFor(() => expect(screen.getByTestId('user')).toHaveTextContent('abc123'));
   });
 

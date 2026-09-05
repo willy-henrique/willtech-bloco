@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
 import EvolucaoProjeto from './EvolucaoProjeto';
 import type { Project } from '../../../types';
 
@@ -26,6 +27,21 @@ describe('EvolucaoProjeto — estados vazios', () => {
     render(<EvolucaoProjeto project={projeto()} />);
     expect(screen.getByText(/hist[óo]rico ainda n[ãa]o carregado/i)).toBeInTheDocument();
     expect(screen.getByText('willy-henrique/willtalk')).toBeInTheDocument();
+  });
+
+  it('sincroniza as atualizacoes sem obrigar o usuario a voltar ao painel', async () => {
+    const onRefresh = vi.fn().mockResolvedValue(undefined);
+    render(<EvolucaoProjeto project={projeto()} onRefresh={onRefresh} />);
+    await userEvent.setup().click(screen.getByRole('button', { name: /atualizar agora/i }));
+    expect(onRefresh).toHaveBeenCalledOnce();
+    expect(await screen.findByRole('status')).toHaveTextContent(/sincronizadas com o github/i);
+  });
+
+  it('explica a falha ao sincronizar as atualizacoes', async () => {
+    const onRefresh = vi.fn().mockRejectedValue(new Error('Repositório privado sem acesso.'));
+    render(<EvolucaoProjeto project={projeto()} onRefresh={onRefresh} />);
+    await userEvent.setup().click(screen.getByRole('button', { name: /atualizar agora/i }));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Repositório privado sem acesso.'));
   });
 
   it('trata histórico vazio igual a histórico ausente', () => {

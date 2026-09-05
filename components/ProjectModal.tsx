@@ -1,8 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Trash2 } from 'lucide-react';
+import { Github, Save, Tags, Trash2, X } from 'lucide-react';
 import { Project } from '../types';
+
+interface ProjectFormData {
+  name: string;
+  type: string;
+  status: Project['status'];
+  progress: number;
+  color: string;
+  stack: string;
+  repo: string;
+  aliases: string;
+}
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -21,13 +32,15 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
   onDelete,
   project
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     type: '',
-    status: 'Active' as 'Active' | 'Maintenance' | 'Legacy',
+    status: 'Active',
     progress: 0,
     color: '#3fcf8e',
-    stack: 'React/Node'
+    stack: 'React/Node',
+    repo: '',
+    aliases: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -41,7 +54,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
         status: project.status,
         progress: project.progress,
         color: project.color,
-        stack: project.stack || 'React/Node'
+        stack: project.stack || '',
+        repo: project.repo || '',
+        aliases: project.aliases?.join(', ') || '',
       });
     } else {
       setFormData({
@@ -50,7 +65,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
         status: 'Active',
         progress: 0,
         color: '#3fcf8e',
-        stack: 'React/Node'
+        stack: 'React/Node',
+        repo: '',
+        aliases: '',
       });
     }
   }, [project, isOpen]);
@@ -60,10 +77,31 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
     setIsSaving(true);
     setActionError(null);
     try {
+      const aliases = Array.from(
+        new Set(
+          formData.aliases
+            .split(/[\n,]/)
+            .map((alias) => alias.trim())
+            .filter(Boolean),
+        ),
+      );
+      const normalizedData: Omit<Project, 'id' | 'createdAt'> = {
+        name: formData.name.trim(),
+        type: formData.type.trim(),
+        status: formData.status,
+        progress: Math.max(0, Math.min(100, formData.progress)),
+        color: formData.color,
+        stack: formData.stack.trim() || undefined,
+        repo: formData.repo.trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '') || undefined,
+        aliases: aliases.length ? aliases : undefined,
+      };
       if (project && onUpdate) {
-        await onUpdate(project.id, formData);
+        await onUpdate(project.id, normalizedData);
       } else {
-        await onSave(formData);
+        const cleanData = Object.fromEntries(
+          Object.entries(normalizedData).filter(([, value]) => value !== undefined),
+        ) as Omit<Project, 'id' | 'createdAt'>;
+        await onSave(cleanData);
       }
       onClose();
     } catch (error) {
@@ -192,12 +230,12 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                     <select
                       id="project-status"
                       value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as Project['status'] })}
                       className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-lime-500 transition-colors"
                     >
-                      <option value="Active">Active</option>
-                      <option value="Maintenance">Maintenance</option>
-                      <option value="Legacy">Legacy</option>
+                      <option value="Active">Ativo</option>
+                      <option value="Maintenance">Em manutenção</option>
+                      <option value="Legacy">Legado</option>
                     </select>
                   </div>
 
@@ -214,6 +252,42 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                       onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
                       className="w-full"
                     />
+                  </div>
+                </div>
+
+                {/* Integrações e reconhecimento */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label htmlFor="project-repo" className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      <Github size={14} /> Repositório GitHub
+                    </label>
+                    <input
+                      id="project-repo"
+                      type="text"
+                      value={formData.repo}
+                      onChange={(e) => setFormData({ ...formData, repo: e.target.value })}
+                      className="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-600 transition-colors focus:border-lime-500 focus:outline-none"
+                      placeholder="organizacao/repositorio"
+                    />
+                    <p className="mt-1.5 text-[11px] leading-4 text-neutral-600">
+                      Usado para sincronizar commits e evolução.
+                    </p>
+                  </div>
+                  <div>
+                    <label htmlFor="project-aliases" className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                      <Tags size={14} /> Apelidos
+                    </label>
+                    <input
+                      id="project-aliases"
+                      type="text"
+                      value={formData.aliases}
+                      onChange={(e) => setFormData({ ...formData, aliases: e.target.value })}
+                      className="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-600 transition-colors focus:border-lime-500 focus:outline-none"
+                      placeholder="portal, app cliente, nome antigo"
+                    />
+                    <p className="mt-1.5 text-[11px] leading-4 text-neutral-600">
+                      Separe por vírgula para a captura reconhecer o projeto.
+                    </p>
                   </div>
                 </div>
 
@@ -258,6 +332,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                       <button
                         key={color}
                         type="button"
+                        aria-label={`Usar cor ${color}`}
                         onClick={() => setFormData({ ...formData, color })}
                         className={`w-10 h-10 rounded-xl border-2 transition-all ${
                           formData.color === color
@@ -294,7 +369,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
                       className="flex-1 px-4 py-3 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
                     >
                       <Trash2 size={18} />
-                      Deletar
+                      Excluir projeto
                     </button>
                   )}
                   <button

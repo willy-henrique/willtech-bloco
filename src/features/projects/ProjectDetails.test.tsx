@@ -39,6 +39,14 @@ const renderDetails = async () => {
 };
 
 describe('ProjectDetails', () => {
+  it('oferece configuracao do projeto diretamente no cabecalho', async () => {
+    const onConfigure = vi.fn();
+    render(<ProjectDetails project={project} onBack={vi.fn()} onConfigure={onConfigure} />);
+    expect(await screen.findByText('EVOLUCAO TESTE')).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole('button', { name: /configurar projeto/i }));
+    expect(onConfigure).toHaveBeenCalledOnce();
+  });
+
   it('salva uma credencial vinculada ao projeto', async () => {
     const user = await renderDetails();
     await user.click(screen.getByRole('button', { name: /credenciais/i }));

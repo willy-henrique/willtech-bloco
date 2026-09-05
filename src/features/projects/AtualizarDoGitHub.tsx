@@ -5,6 +5,25 @@ import type { AtividadeDoRepo } from '../../../api/_atividade';
 
 type Estado = 'parado' | 'buscando' | 'ok' | 'erro';
 
+export async function buscarAtividadeNoGitHub(repos: string[]): Promise<AtividadeDoRepo[]> {
+  const resposta = await fetch('/api/github-atividade', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ repos }),
+  });
+
+  if (!resposta.ok) {
+    const corpo = await resposta.json().catch(() => ({}));
+    throw new Error(corpo.erro ?? `A função respondeu ${resposta.status}.`);
+  }
+
+  const corpo = (await resposta.json()) as { resultados?: AtividadeDoRepo[] };
+  if (!Array.isArray(corpo.resultados)) {
+    throw new Error('A resposta do GitHub chegou em um formato inválido.');
+  }
+  return corpo.resultados;
+}
+
 /**
  * Puxa a atividade recente do GitHub e grava nos projetos.
  *
@@ -32,18 +51,7 @@ const AtualizarDoGitHub: React.FC = () => {
     setFalhas([]);
 
     try {
-      const resposta = await fetch('/api/github-atividade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repos: comRepo.map((p) => p.repo) }),
-      });
-
-      if (!resposta.ok) {
-        const corpo = await resposta.json().catch(() => ({}));
-        throw new Error(corpo.erro ?? `A função respondeu ${resposta.status}.`);
-      }
-
-      const { resultados } = (await resposta.json()) as { resultados: AtividadeDoRepo[] };
+      const resultados = await buscarAtividadeNoGitHub(comRepo.map((p) => p.repo!));
 
       let gravados = 0;
       for (const resultado of resultados) {

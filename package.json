@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run src api",
     "test:watch": "vitest src api",
-    "test:rules": "firebase emulators:exec --only firestore --project willtech-rules-test \"vitest run tests/rules\""
+    "test:rules": "firebase emulators:exec --only firestore --project willtech-rules-test \"vitest run tests/rules\"",
+    "test:all": "npm test && npm run test:rules",
+    "check": "tsc --noEmit && npm test && npm run build"
   },
   "dependencies": {
     "firebase": "^12.8.0",

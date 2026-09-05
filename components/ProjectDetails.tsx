@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Edit2, Trash2, Lock, DollarSign, FileText, 
   Calendar, AlertCircle, CheckCircle, XCircle, Copy, Eye, EyeOff,
-  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Activity } from 'lucide-react';
+  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Activity, Settings2 } from 'lucide-react';
 import { Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail } from '../types';
 import { 
   projectCredentialsService, 
@@ -17,9 +17,11 @@ import EvolucaoProjeto from '../src/features/projects/EvolucaoProjeto';
 interface ProjectDetailsProps {
   project: Project;
   onBack: () => void;
+  onConfigure?: () => void;
+  onRefreshUpdates?: () => Promise<void>;
 }
 
-const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
+const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConfigure, onRefreshUpdates }) => {
   const [credentials, setCredentials] = useState<ProjectCredential[]>([]);
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
   const [notes, setNotes] = useState<ProjectNote[]>([]);
@@ -417,7 +419,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8">
+    <div className="min-h-screen bg-[#0d100f] text-neutral-200 p-4 md:p-8">
       {/* Header */}
       <div className="mb-6">
         <button
@@ -428,18 +430,28 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
           Voltar
         </button>
         
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-white mb-2">{project.name}</h1>
             <p className="text-neutral-400">{project.type}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div 
               className="px-3 py-1 rounded-lg text-xs font-bold uppercase"
               style={{ backgroundColor: project.color + '20', color: project.color }}
             >
               {project.status}
             </div>
+            {onConfigure && (
+              <button
+                type="button"
+                onClick={onConfigure}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition-colors hover:border-emerald-400/35 hover:bg-emerald-400/15 hover:text-emerald-200"
+              >
+                <Settings2 size={17} />
+                Configurar projeto
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -454,7 +466,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       {/* Tabs */}
       <div className="flex gap-1 sm:gap-2 mb-4 md:mb-6 border-b border-neutral-800 overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0">
         {[
-          { id: 'evolucao', label: 'Evolução', icon: Activity, shortLabel: 'Evol' },
+          { id: 'evolucao', label: 'Atualizações', icon: Activity, shortLabel: 'Updates' },
           { id: 'credentials', label: 'Credenciais', icon: Lock, shortLabel: 'Creds' },
           { id: 'payments', label: 'Pagamentos', icon: DollarSign, shortLabel: 'Pags' },
           { id: 'notes', label: 'Notas', icon: FileText, shortLabel: 'Notas' },
@@ -467,7 +479,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-lime-500 text-lime-500'
+                  ? 'border-emerald-400/30 text-emerald-300'
                   : 'border-transparent text-neutral-400 hover:text-neutral-300'
               }`}
             >
@@ -482,7 +494,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
       {/* Content */}
       <div className="space-y-6">
         {/* CREDENCIAIS */}
-        {activeTab === 'evolucao' && <EvolucaoProjeto project={project} />}
+        {activeTab === 'evolucao' && <EvolucaoProjeto project={project} onRefresh={onRefreshUpdates} />}
 
         {activeTab === 'credentials' && (
           <div>
@@ -494,7 +506,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   setCredentialForm({});
                   setShowCredentialForm(true);
                 }}
-                className="px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-emerald-300 text-black rounded-lg font-bold hover:bg-emerald-200 transition-colors flex items-center gap-2"
               >
                 <Plus size={18} />
                 Nova Credencial
@@ -506,10 +518,10 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 shadow-xl"
+                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border border-white/[0.08] shadow-xl"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <Lock className="text-lime-500" size={20} />
+                  <Lock className="text-emerald-300" size={20} />
                   <h3 className="text-lg font-bold text-white">
                     {editingItem ? 'Editar Credencial' : 'Nova Credencial'}
                   </h3>
@@ -520,7 +532,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   placeholder="Título (ex: Admin, Dev, Staging) *"
                   value={credentialForm.title || ''}
                   onChange={(e) => setCredentialForm({ ...credentialForm, title: e.target.value })}
-                  className="w-full mb-3 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all font-semibold"
+                  className="w-full mb-3 px-4 py-3 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all font-semibold"
                   required
                 />
                 <p className="text-xs text-neutral-500 mb-3 -mt-2">
@@ -537,7 +549,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       placeholder="Nome de usuário"
                       value={credentialForm.username || ''}
                       onChange={(e) => setCredentialForm({ ...credentialForm, username: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                      className="w-full px-4 py-2.5 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all"
                     />
                   </div>
                   <div>
@@ -550,7 +562,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       placeholder="email@exemplo.com"
                       value={credentialForm.email || ''}
                       onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                      className="w-full px-4 py-2.5 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all"
                     />
                   </div>
                 </div>
@@ -564,12 +576,12 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     placeholder="Senha ou token"
                     value={credentialForm.password || ''}
                     onChange={(e) => setCredentialForm({ ...credentialForm, password: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 pr-12 transition-all"
+                    className="w-full px-4 py-2.5 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 pr-12 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword({ ...showPassword, [editingItem || 'new']: !showPassword[editingItem || 'new'] })}
-                    className="absolute right-3 top-8 text-neutral-400 hover:text-lime-500 transition-colors"
+                    className="absolute right-3 top-8 text-neutral-400 hover:text-emerald-300 transition-colors"
                     title={showPassword[editingItem || 'new'] ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword[editingItem || 'new'] ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -585,12 +597,12 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     placeholder="https://exemplo.com"
                     value={credentialForm.url || ''}
                     onChange={(e) => setCredentialForm({ ...credentialForm, url: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    className="w-full px-4 py-2.5 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all"
                   />
                 </div>
                 <div className="mb-3">
                   <label className="text-sm font-bold text-neutral-400 mb-3 flex items-center gap-2">
-                    <FileText size={16} className="text-lime-500" />
+                    <FileText size={16} className="text-emerald-300" />
                     Arquivo .env (opcional)
                   </label>
                   <div className="relative">
@@ -598,7 +610,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       placeholder="Cole aqui o conteúdo do arquivo .env do projeto...&#10;&#10;Exemplo:&#10;DATABASE_URL=postgresql://...&#10;API_KEY=abc123&#10;SECRET_KEY=xyz789"
                       value={credentialForm.env || ''}
                       onChange={(e) => setCredentialForm({ ...credentialForm, env: e.target.value })}
-                      className="w-full px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 font-mono text-xs leading-relaxed transition-all"
+                      className="w-full px-4 py-3 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 font-mono text-xs leading-relaxed transition-all"
                       rows={10}
                     />
                     {credentialForm.env && (
@@ -606,7 +618,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(credentialForm.env!)}
-                          className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-lime-500 rounded text-xs font-bold transition-all flex items-center gap-1"
+                          className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-emerald-300 rounded text-xs font-bold transition-all flex items-center gap-1"
                           title="Copiar .env"
                         >
                           <Copy size={12} />
@@ -616,7 +628,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     )}
                   </div>
                   <div className="mt-2 flex items-start gap-2">
-                    <div className="w-1 h-1 rounded-full bg-lime-500 mt-1.5"></div>
+                    <div className="w-1 h-1 rounded-full bg-emerald-300 mt-1.5"></div>
                     <p className="text-xs text-neutral-500 flex-1">
                       Cole todo o conteúdo do arquivo .env aqui. As variáveis serão armazenadas de forma segura.
                     </p>
@@ -630,7 +642,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     placeholder="Informações adicionais sobre esta credencial..."
                     value={credentialForm.notes || ''}
                     onChange={(e) => setCredentialForm({ ...credentialForm, notes: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    className="w-full px-4 py-2.5 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all"
                     rows={2}
                   />
                 </div>
@@ -638,7 +650,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   <button
                     onClick={handleSaveCredential}
                     disabled={!credentialForm.title}
-                    className="flex-1 px-5 py-3 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-1 px-5 py-3 bg-emerald-300 text-black rounded-xl font-bold hover:bg-emerald-200 transition-all active:scale-95 shadow-lg shadow-[0_10px_25px_rgba(52,211,153,0.15)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Save size={18} />
                     Salvar Credencial
@@ -660,7 +672,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
             {/* List */}
             <div className="space-y-3">
               {credentials.map(cred => (
-                <div key={cred.id} className="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
+                <div key={cred.id} className="p-4 bg-[#121614] rounded-xl border border-neutral-800">
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h3 className="text-lg font-bold text-white mb-2">{cred.title}</h3>
@@ -669,7 +681,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           <div className="flex items-center gap-2">
                             <User size={14} />
                             <span>{cred.username}</span>
-                            <button onClick={() => copyToClipboard(cred.username!)} className="text-lime-500 hover:text-lime-400">
+                            <button onClick={() => copyToClipboard(cred.username!)} className="text-emerald-300 hover:text-emerald-300">
                               <Copy size={12} />
                             </button>
                           </div>
@@ -678,7 +690,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           <div className="flex items-center gap-2">
                             <Mail size={14} />
                             <span>{cred.email}</span>
-                            <button onClick={() => copyToClipboard(cred.email!)} className="text-lime-500 hover:text-lime-400">
+                            <button onClick={() => copyToClipboard(cred.email!)} className="text-emerald-300 hover:text-emerald-300">
                               <Copy size={12} />
                             </button>
                           </div>
@@ -687,10 +699,10 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           <div className="flex items-center gap-2">
                             <Key size={14} />
                             <span>{showPassword[cred.id] ? cred.password : '••••••••'}</span>
-                            <button onClick={() => setShowPassword({ ...showPassword, [cred.id]: !showPassword[cred.id] })} className="text-lime-500 hover:text-lime-400">
+                            <button onClick={() => setShowPassword({ ...showPassword, [cred.id]: !showPassword[cred.id] })} className="text-emerald-300 hover:text-emerald-300">
                               {showPassword[cred.id] ? <EyeOff size={12} /> : <Eye size={12} />}
                             </button>
-                            <button onClick={() => copyToClipboard(cred.password!)} className="text-lime-500 hover:text-lime-400">
+                            <button onClick={() => copyToClipboard(cred.password!)} className="text-emerald-300 hover:text-emerald-300">
                               <Copy size={12} />
                             </button>
                           </div>
@@ -698,19 +710,19 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         {cred.url && (
                           <div className="flex items-center gap-2">
                             <LinkIcon size={14} />
-                            <a href={cred.url} target="_blank" rel="noopener noreferrer" className="text-lime-500 hover:underline">
+                            <a href={cred.url} target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:underline">
                               {cred.url}
                             </a>
                           </div>
                         )}
                       </div>
                       {cred.env && (
-                        <div className="mt-4 p-4 bg-gradient-to-br from-neutral-950 to-black rounded-xl border-2 border-neutral-800 hover:border-lime-500/50 transition-all">
+                        <div className="mt-4 p-4 bg-gradient-to-br from-neutral-950 to-black rounded-xl border border-white/[0.08] hover:border-emerald-400/30/50 transition-all">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <FileText size={16} className="text-lime-500" />
+                              <FileText size={16} className="text-emerald-300" />
                               <span className="text-sm font-bold text-white">Arquivo .env</span>
-                              <span className="px-2 py-0.5 bg-lime-500/10 text-lime-400 text-xs font-bold rounded border border-lime-500/20">
+                              <span className="px-2 py-0.5 bg-emerald-300/10 text-emerald-300 text-xs font-bold rounded border border-emerald-400/30/20">
                                 {cred.env.split('\n').filter(line => line.trim()).length} variáveis
                               </span>
                             </div>
@@ -718,7 +730,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                               onClick={() => {
                                 copyToClipboard(cred.env!);
                               }}
-                              className="px-3 py-1.5 bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 hover:text-lime-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-lime-500/20"
+                              className="px-3 py-1.5 bg-emerald-300/10 hover:bg-emerald-300/20 text-emerald-300 hover:text-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-emerald-400/30/20"
                             >
                               <Copy size={14} />
                               Copiar Tudo
@@ -752,7 +764,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           setCredentialForm(cred);
                           setShowCredentialForm(true);
                         }}
-                        className="p-2 text-neutral-400 hover:text-lime-500 transition-colors"
+                        className="p-2 text-neutral-400 hover:text-emerald-300 transition-colors"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -789,7 +801,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   setPaymentForm({ dueDate: new Date().toISOString().split('T')[0], status: 'pending' });
                   setShowPaymentForm(true);
                 }}
-                className="w-full sm:w-auto px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-emerald-300 text-black rounded-lg font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 Novo Pagamento
@@ -798,13 +810,13 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
 
             {/* Form */}
             {(showPaymentForm || editingItem) && (
-              <div className="mb-6 p-4 md:p-6 bg-neutral-900 rounded-xl border border-neutral-800">
+              <div className="mb-6 p-4 md:p-6 bg-[#121614] rounded-xl border border-neutral-800">
                 <input
                   type="text"
                   placeholder="Título (ex: Mensalidade, Contrato Anual)"
                   value={paymentForm.title || ''}
                   onChange={(e) => setPaymentForm({ ...paymentForm, title: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                  className="w-full mb-3 px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                   <input
@@ -812,32 +824,32 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     value={paymentForm.dueDate || ''}
                     onChange={(e) => setPaymentForm({ ...paymentForm, dueDate: e.target.value })}
                     disabled={paymentForm.isRecurring}
-                    className="px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-lime-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <input
                     type="number"
                     placeholder="Valor"
                     value={paymentForm.amount || ''}
                     onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) })}
-                    className="px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                    className="px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                   />
                   <select
                     value={paymentForm.currency || 'BRL'}
                     onChange={(e) => setPaymentForm({ ...paymentForm, currency: e.target.value })}
-                    className="px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-lime-500"
+                    className="px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white focus:outline-none focus:border-emerald-400/30"
                   >
                     <option value="BRL">BRL</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                   </select>
                 </div>
-                <div className="mb-3 p-3 bg-neutral-950 rounded-lg border border-neutral-800">
+                <div className="mb-3 p-3 bg-[#0d100f] rounded-lg border border-neutral-800">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={paymentForm.isRecurring || false}
                       onChange={(e) => setPaymentForm({ ...paymentForm, isRecurring: e.target.checked })}
-                      className="w-4 h-4 text-lime-500 bg-neutral-800 border-neutral-700 rounded focus:ring-lime-500"
+                      className="w-4 h-4 text-emerald-300 bg-neutral-800 border-neutral-700 rounded focus:ring-lime-500"
                     />
                     <span className="text-sm text-neutral-300">Pagamento recorrente (mensal)</span>
                   </label>
@@ -851,7 +863,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         placeholder="Ex: 4 (dia 04)"
                         value={paymentForm.recurringDay || ''}
                         onChange={(e) => setPaymentForm({ ...paymentForm, recurringDay: parseInt(e.target.value) })}
-                        className="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                        className="w-full px-4 py-2 bg-[#121614] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                       />
                     </div>
                   )}
@@ -860,13 +872,13 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   placeholder="Notas (opcional)"
                   value={paymentForm.notes || ''}
                   onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                  className="w-full mb-3 px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                  className="w-full mb-3 px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                   rows={2}
                 />
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={handleSavePayment}
-                    className="flex-1 px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 bg-emerald-300 text-black rounded-lg font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2"
                   >
                     <Save size={16} />
                     Salvar
@@ -900,7 +912,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         ? 'bg-red-500/10 border-red-500/50 shadow-lg shadow-red-500/20'
                         : status === 'paid'
                         ? 'bg-green-500/10 border-green-500/50'
-                        : 'bg-neutral-900 border-neutral-800'
+                        : 'bg-[#121614] border-neutral-800'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-3">
@@ -966,7 +978,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                               setPaymentForm(payment);
                               setShowPaymentForm(true);
                             }}
-                            className="p-2 text-neutral-400 hover:text-lime-500 transition-colors"
+                            className="p-2 text-neutral-400 hover:text-emerald-300 transition-colors"
                           >
                             <Edit2 size={16} />
                           </button>
@@ -1008,7 +1020,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   setNoteForm({});
                   setShowNoteForm(true);
                 }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 bg-emerald-300 text-black rounded-xl font-bold hover:bg-emerald-200 transition-all active:scale-95 shadow-lg shadow-[0_10px_25px_rgba(52,211,153,0.15)] flex items-center justify-center gap-2"
               >
                 <Plus size={20} />
                 Nova Nota
@@ -1020,10 +1032,10 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 shadow-xl"
+                className="mb-6 p-5 md:p-6 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border border-white/[0.08] shadow-xl"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <FileText className="text-lime-500" size={20} />
+                  <FileText className="text-emerald-300" size={20} />
                   <h3 className="text-lg font-bold text-white">
                     {editingItem ? 'Editar Nota' : 'Nova Nota'}
                   </h3>
@@ -1034,14 +1046,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   placeholder="Título da nota"
                   value={noteForm.title || ''}
                   onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                  className="w-full mb-4 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 text-lg font-semibold transition-all"
+                  className="w-full mb-4 px-4 py-3 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 text-lg font-semibold transition-all"
                 />
                 
                 <textarea
                   placeholder="Escreva sua nota aqui... (suporta markdown e quebras de linha)"
                   value={noteForm.content || ''}
                   onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                  className="w-full mb-4 px-4 py-3 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 min-h-[250px] resize-y font-mono text-sm transition-all"
+                  className="w-full mb-4 px-4 py-3 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 min-h-[250px] resize-y font-mono text-sm transition-all"
                   rows={10}
                 />
                 
@@ -1051,7 +1063,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     placeholder="Categoria (ex: Bug, Feature, Documentação, Ideia)"
                     value={noteForm.category || ''}
                     onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                    className="flex-1 px-4 py-2 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500 focus:ring-2 focus:ring-lime-500/20 transition-all"
+                    className="flex-1 px-4 py-2 bg-[#0d100f] border border-white/[0.08] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30 focus:ring-2 focus:ring-emerald-400/15 transition-all"
                   />
                 </div>
                 
@@ -1059,7 +1071,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   <button
                     onClick={handleSaveNote}
                     disabled={!noteForm.title || !noteForm.content}
-                    className="flex-1 px-5 py-3 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex-1 px-5 py-3 bg-emerald-300 text-black rounded-xl font-bold hover:bg-emerald-200 transition-all active:scale-95 shadow-lg shadow-[0_10px_25px_rgba(52,211,153,0.15)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Save size={18} />
                     Salvar Nota
@@ -1085,15 +1097,15 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     key={note.id} 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="group p-5 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border-2 border-neutral-800 hover:border-lime-500/50 transition-all shadow-lg hover:shadow-xl hover:shadow-lime-500/10"
+                    className="group p-5 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl border border-white/[0.08] hover:border-emerald-400/30/50 transition-all shadow-lg hover:shadow-xl hover:shadow-[0_10px_25px_rgba(52,211,153,0.1)]"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-lime-400 transition-colors">
+                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
                           {note.title}
                         </h3>
                         {note.category && (
-                          <span className="inline-block text-xs font-bold text-lime-400 bg-lime-500/10 px-3 py-1 rounded-full border border-lime-500/20">
+                          <span className="inline-block text-xs font-bold text-emerald-300 bg-emerald-300/10 px-3 py-1 rounded-full border border-emerald-400/30/20">
                             {note.category}
                           </span>
                         )}
@@ -1105,7 +1117,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                             setNoteForm(note);
                             setShowNoteForm(true);
                           }}
-                          className="p-2 text-neutral-400 hover:text-lime-500 hover:bg-lime-500/10 rounded-lg transition-all"
+                          className="p-2 text-neutral-400 hover:text-emerald-300 hover:bg-emerald-300/10 rounded-lg transition-all"
                           title="Editar nota"
                         >
                           <Edit2 size={16} />
@@ -1120,7 +1132,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       </div>
                     </div>
                     
-                    <div className="bg-neutral-950/50 rounded-xl p-4 mb-3 border border-neutral-800">
+                    <div className="bg-[#0d100f]/50 rounded-xl p-4 mb-3 border border-neutral-800">
                       <p className="text-neutral-300 whitespace-pre-wrap text-sm leading-relaxed">
                         {note.content}
                       </p>
@@ -1137,7 +1149,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         })}
                       </span>
                       {note.updatedAt && note.updatedAt !== note.createdAt && (
-                        <span className="text-lime-500/70">
+                        <span className="text-emerald-300/70">
                           Editada
                         </span>
                       )}
@@ -1149,7 +1161,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-16 bg-neutral-900/50 rounded-2xl border-2 border-dashed border-neutral-800"
+                className="text-center py-16 bg-[#121614]/50 rounded-2xl border-2 border-dashed border-neutral-800"
               >
                 <FileText className="mx-auto mb-4 text-neutral-600" size={48} />
                 <h3 className="text-lg font-bold text-neutral-400 mb-2">Nenhuma nota cadastrada</h3>
@@ -1162,7 +1174,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     setNoteForm({});
                     setShowNoteForm(true);
                   }}
-                  className="px-5 py-2.5 bg-lime-500 text-black rounded-xl font-bold hover:bg-lime-400 transition-all hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center gap-2 mx-auto"
+                  className="px-5 py-2.5 bg-emerald-300 text-black rounded-xl font-bold hover:bg-emerald-200 transition-all active:scale-95 shadow-lg shadow-[0_10px_25px_rgba(52,211,153,0.15)] flex items-center justify-center gap-2 mx-auto"
                 >
                   <Plus size={18} />
                   Criar Primeira Nota
@@ -1184,14 +1196,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     setDetailForm(detail);
                   }
                 }}
-                className="w-full sm:w-auto px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-emerald-300 text-black rounded-lg font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2"
               >
                 {isEditingDetail ? <X size={18} /> : <Edit2 size={18} />}
                 {isEditingDetail ? 'Cancelar' : 'Editar'}
               </button>
             </div>
 
-            <div className="p-4 md:p-6 bg-neutral-900 rounded-xl border border-neutral-800">
+            <div className="p-4 md:p-6 bg-[#121614] rounded-xl border border-neutral-800">
               {isEditingDetail ? (
                 <div className="space-y-4">
                   <div>
@@ -1199,7 +1211,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                     <textarea
                       value={detailForm.description || ''}
                       onChange={(e) => setDetailForm({ ...detailForm, description: e.target.value })}
-                      className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                      className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                       rows={3}
                       placeholder="Descrição do projeto..."
                     />
@@ -1211,7 +1223,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         type="text"
                         value={detailForm.clientName || ''}
                         onChange={(e) => setDetailForm({ ...detailForm, clientName: e.target.value })}
-                        className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                        className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                         placeholder="Nome do cliente"
                       />
                     </div>
@@ -1221,7 +1233,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         type="text"
                         value={detailForm.clientContact || ''}
                         onChange={(e) => setDetailForm({ ...detailForm, clientContact: e.target.value })}
-                        className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                        className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                         placeholder="Email ou telefone"
                       />
                     </div>
@@ -1242,7 +1254,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         type="url"
                         value={detailForm.repositoryUrl || ''}
                         onChange={(e) => setDetailForm({ ...detailForm, repositoryUrl: e.target.value })}
-                        className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                        className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                         placeholder="https://github.com/usuario/projeto"
                       />
                     </div>
@@ -1256,7 +1268,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           type="url"
                           value={detailForm.productionUrl || ''}
                           onChange={(e) => setDetailForm({ ...detailForm, productionUrl: e.target.value })}
-                          className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                          className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                           placeholder="https://app.exemplo.com"
                         />
                       </div>
@@ -1269,7 +1281,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                           type="url"
                           value={detailForm.stagingUrl || ''}
                           onChange={(e) => setDetailForm({ ...detailForm, stagingUrl: e.target.value })}
-                          className="w-full px-4 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-lime-500"
+                          className="w-full px-4 py-2 bg-[#0d100f] border border-neutral-800 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400/30"
                           placeholder="https://staging.exemplo.com"
                         />
                       </div>
@@ -1279,7 +1291,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                   <div className="flex flex-col sm:flex-row gap-2 pt-4">
                     <button
                       onClick={handleSaveDetail}
-                      className="flex-1 px-4 py-2 bg-lime-500 text-black rounded-lg font-bold hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 bg-emerald-300 text-black rounded-lg font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2"
                     >
                       <Save size={16} />
                       Salvar
@@ -1326,16 +1338,16 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                       </h3>
                       <div className="grid grid-cols-1 gap-4">
                         {detail?.repositoryUrl && (
-                          <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800">
+                          <div className="p-4 bg-[#0d100f] rounded-lg border border-neutral-800">
                             <div className="flex items-center gap-2 mb-2">
-                              <Code size={16} className="text-lime-500" />
+                              <Code size={16} className="text-emerald-300" />
                               <span className="text-sm font-bold text-neutral-400">Repositório</span>
                             </div>
                             <a 
                               href={detail.repositoryUrl} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="text-lime-500 hover:text-lime-400 hover:underline break-all block"
+                              className="text-emerald-300 hover:text-emerald-300 hover:underline break-all block"
                             >
                               {detail.repositoryUrl}
                             </a>
@@ -1343,7 +1355,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {detail?.productionUrl && (
-                            <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800">
+                            <div className="p-4 bg-[#0d100f] rounded-lg border border-neutral-800">
                               <div className="flex items-center gap-2 mb-2">
                                 <Globe size={16} className="text-green-500" />
                                 <span className="text-sm font-bold text-neutral-400">Produção</span>
@@ -1359,7 +1371,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
                             </div>
                           )}
                           {detail?.stagingUrl && (
-                            <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800">
+                            <div className="p-4 bg-[#0d100f] rounded-lg border border-neutral-800">
                               <div className="flex items-center gap-2 mb-2">
                                 <Globe size={16} className="text-yellow-500" />
                                 <span className="text-sm font-bold text-neutral-400">Staging</span>

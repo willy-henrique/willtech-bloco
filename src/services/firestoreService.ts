@@ -17,7 +17,7 @@ import {
 import { db } from '../config/firebase';
 import { Task, Snippet, VaultItem, Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail, ContractDeadline } from '../../types';
 
-// Coleções do Firestore
+// Cole����es do Firestore
 const COLLECTIONS = {
   TASKS: 'tasks',
   SNIPPETS: 'snippets',
@@ -83,7 +83,7 @@ export const tasksService = {
     await deleteDoc(docRef);
   },
 
-  // Escutar mudanças em tempo real
+  // Escutar mudan��as em tempo real
   subscribe(callback: (tasks: Task[]) => void, onError?: (error: Error) => void): Unsubscribe {
     const q = query(collection(db, COLLECTIONS.TASKS), orderBy('createdAt', 'desc'));
     return onSnapshot(
@@ -233,9 +233,9 @@ export const projectsService = {
         } as Project;
       });
     } catch (error: any) {
-      // Se o erro for por falta de índice, tentar sem orderBy
+      // Se o erro for por falta de ��ndice, tentar sem orderBy
       if (error?.code === 'failed-precondition') {
-        console.warn('Índice não criado. Buscando sem ordenação...');
+        console.warn('�?ndice nǜo criado. Buscando sem ordena��ǜo...');
         const snapshot = await getDocs(collection(db, COLLECTIONS.PROJECTS));
         return snapshot.docs.map(doc => {
           const data = doc.data();
@@ -275,7 +275,10 @@ export const projectsService = {
 
   async update(id: string, updates: Partial<Project>): Promise<void> {
     const docRef = doc(db, COLLECTIONS.PROJECTS, id);
-    await updateDoc(docRef, updates as any);
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).map(([key, value]) => [key, value === undefined ? deleteField() : value]),
+    );
+    await updateDoc(docRef, cleanUpdates as any);
   },
 
   async delete(id: string): Promise<void> {
@@ -305,9 +308,9 @@ export const projectsService = {
         (error: any) => {
           console.error('Erro no listener de projetos:', error);
           onError?.(error);
-          // Se for erro de índice, tentar sem orderBy
+          // Se for erro de ��ndice, tentar sem orderBy
           if (error?.code === 'failed-precondition') {
-            console.warn('Índice não criado. Usando listener sem ordenação...');
+            console.warn('�?ndice nǜo criado. Usando listener sem ordena��ǜo...');
             const qWithoutOrder = query(collection(db, COLLECTIONS.PROJECTS));
             unsubscribe = onSnapshot(
               qWithoutOrder,
@@ -325,11 +328,11 @@ export const projectsService = {
               (fallbackError) => onError?.(fallbackError)
             );
           }
-          // Em caso de outro erro, não chamar callback para não perder os projetos atuais
+          // Em caso de outro erro, nǜo chamar callback para nǜo perder os projetos atuais
         }
       );
     } catch (error) {
-      // Se não conseguir criar query com orderBy, usar sem ordenação
+      // Se nǜo conseguir criar query com orderBy, usar sem ordena��ǜo
       const q = query(collection(db, COLLECTIONS.PROJECTS));
       unsubscribe = onSnapshot(
         q,
@@ -403,9 +406,9 @@ export const projectCredentialsService = {
         } as ProjectCredential;
       });
     } catch (error: any) {
-      // Se o erro for por falta de índice, tentar sem orderBy
+      // Se o erro for por falta de ��ndice, tentar sem orderBy
       if (error?.code === 'failed-precondition') {
-        console.warn('Índice não criado para project_credentials. Buscando sem ordenação...');
+        console.warn('�?ndice nǜo criado para project_credentials. Buscando sem ordena��ǜo...');
         const q = query(
           collection(db, COLLECTIONS.PROJECT_CREDENTIALS),
           where('projectId', '==', projectId)
@@ -434,7 +437,7 @@ export const projectCredentialsService = {
       createdAt: Timestamp.now()
     };
     
-    // Adicionar apenas campos que têm valor (não são undefined/null)
+    // Adicionar apenas campos que tǦm valor (nǜo sǜo undefined/null)
     if (credential.username !== undefined && credential.username !== null && credential.username !== '') {
       cleanData.username = credential.username;
     }
@@ -464,7 +467,7 @@ export const projectCredentialsService = {
     // Remover campos undefined/null antes de atualizar no Firestore
     const cleanUpdates: any = {};
     
-    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    // Adicionar apenas campos que tǦm valor (nǜo sǜo undefined/null/vazios)
     if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
       cleanUpdates.title = updates.title.trim();
     }
@@ -574,7 +577,7 @@ export const projectPaymentsService = {
       createdAt: Timestamp.now()
     };
     
-    // Adicionar apenas campos que têm valor
+    // Adicionar apenas campos que tǦm valor
     if (payment.amount !== undefined && payment.amount !== null) {
       cleanData.amount = payment.amount;
     }
@@ -595,7 +598,7 @@ export const projectPaymentsService = {
     // Remover campos undefined/null antes de atualizar no Firestore
     const cleanUpdates: any = {};
     
-    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    // Adicionar apenas campos que tǦm valor (nǜo sǜo undefined/null/vazios)
     if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
       cleanUpdates.title = updates.title.trim();
     }
@@ -644,6 +647,36 @@ export const projectPaymentsService = {
 
 // ==================== PROJECT NOTES ====================
 export const projectNotesService = {
+  async getAll(): Promise<ProjectNote[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.PROJECT_NOTES),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
+          updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt
+        } as ProjectNote;
+      });
+    } catch (error: any) {
+      const snapshot = await getDocs(collection(db, COLLECTIONS.PROJECT_NOTES));
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
+          updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt
+        } as ProjectNote;
+      }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+  },
+
   async getByProjectId(projectId: string): Promise<ProjectNote[]> {
     try {
       const q = query(
@@ -662,9 +695,9 @@ export const projectNotesService = {
         } as ProjectNote;
       });
     } catch (error: any) {
-      // Se o erro for por falta de índice, tentar sem orderBy
+      // Se o erro for por falta de ��ndice, tentar sem orderBy
       if (error?.code === 'failed-precondition') {
-        console.warn('Índice não criado para project_notes. Buscando sem ordenação...');
+        console.warn('�?ndice nǜo criado para project_notes. Buscando sem ordena��ǜo...');
         const q = query(
           collection(db, COLLECTIONS.PROJECT_NOTES),
           where('projectId', '==', projectId)
@@ -713,7 +746,7 @@ export const projectNotesService = {
       updatedAt: Timestamp.now()
     };
     
-    // Adicionar apenas campos que têm valor (não são undefined/null/vazios)
+    // Adicionar apenas campos que tǦm valor (nǜo sǜo undefined/null/vazios)
     if (updates.title !== undefined && updates.title !== null && updates.title.trim() !== '') {
       cleanUpdates.title = updates.title.trim();
     }

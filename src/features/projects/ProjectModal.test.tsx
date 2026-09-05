@@ -4,9 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProjectModal from '../../../components/ProjectModal';
 import type { Project } from '../../../types';
 
-const project: Project = { id: 'p1', name: 'Portal', type: 'SaaS', status: 'Active', progress: 40, color: '#3fcf8e', stack: 'React/Node' };
+const project: Project = {
+  id: 'p1',
+  name: 'Portal',
+  type: 'SaaS',
+  status: 'Active',
+  progress: 40,
+  color: '#3fcf8e',
+  stack: 'React/Node',
+  repo: 'willtech/portal',
+  aliases: ['portal antigo'],
+};
 
-beforeEach(() => vi.spyOn(window, 'confirm').mockReturnValue(true));
+beforeEach(() => {
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+});
 
 describe('ProjectModal', () => {
   it('cria um projeto e fecha somente depois de salvar', async () => {
@@ -40,9 +53,27 @@ describe('ProjectModal', () => {
     render(<ProjectModal isOpen onClose={vi.fn()} onSave={vi.fn()} onUpdate={onUpdate} onDelete={onDelete} project={project} />);
     await user.clear(screen.getByLabelText('Nome do Projeto'));
     await user.type(screen.getByLabelText('Nome do Projeto'), 'Portal 2');
+    await user.clear(screen.getByLabelText('Repositório GitHub'));
+    await user.type(screen.getByLabelText('Repositório GitHub'), 'https://github.com/willtech/portal-v2.git');
+    await user.clear(screen.getByLabelText('Apelidos'));
+    await user.type(screen.getByLabelText('Apelidos'), 'portal novo, cliente web, portal novo');
     await user.click(screen.getByRole('button', { name: /^salvar$/i }));
-    expect(onUpdate).toHaveBeenCalledWith('p1', expect.objectContaining({ name: 'Portal 2' }));
-    await user.click(screen.getByRole('button', { name: /deletar/i }));
+    expect(onUpdate).toHaveBeenCalledWith('p1', expect.objectContaining({
+      name: 'Portal 2',
+      repo: 'willtech/portal-v2',
+      aliases: ['portal novo', 'cliente web'],
+    }));
+    await user.click(screen.getByRole('button', { name: /excluir projeto/i }));
     expect(onDelete).toHaveBeenCalledWith('p1');
+  });
+
+  it('permite limpar configuracoes opcionais existentes', async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<ProjectModal isOpen onClose={vi.fn()} onSave={vi.fn()} onUpdate={onUpdate} project={project} />);
+    await user.clear(screen.getByLabelText('Repositório GitHub'));
+    await user.clear(screen.getByLabelText('Apelidos'));
+    await user.click(screen.getByRole('button', { name: /^salvar$/i }));
+    expect(onUpdate).toHaveBeenCalledWith('p1', expect.objectContaining({ repo: undefined, aliases: undefined }));
   });
 });

@@ -1,10 +1,390 @@
-// GERADO por scripts/gerar-catalogo.mjs em 2026-08-26.
+// GERADO por scripts/gerar-catalogo.mjs em 2026-09-05.
 // Rode de novo quando criar repositórios novos.
 // Para renomear projetos ou marcar duplicatas, edite OVERRIDES no gerador —
 // não edite este arquivo, ele é sobrescrito.
 import type { CatalogoProjeto } from './tipos';
 
 export const CATALOGO: CatalogoProjeto[] = [
+  {
+    "name": "mavotalk-maisvarejo",
+    "status": "Active",
+    "type": "Software",
+    "progress": 0,
+    "stack": "Next.js + Supabase + Prisma + PostgreSQL + Tailwind",
+    "repo": "willy-henrique/mavotalk-maisvarejo",
+    "aliases": [
+      "maisvarejo",
+      "mavotalk",
+      "mavotalk maisvarejo",
+      "mavotalk-maisvarejo",
+      "mavotalkmaisvarejo"
+    ],
+    "vocab": [
+      "whatsapp",
+      "metricas",
+      "atendimento",
+      "fuso",
+      "loja",
+      "pareamento",
+      "sessao",
+      "atendente",
+      "periodo",
+      "fila",
+      "conversa",
+      "login",
+      "assinatura",
+      "promocao"
+    ],
+    "ultimoCommit": "2026-09-01",
+    "evolucoes30d": 29,
+    "correcoes30d": 39,
+    "historico": [
+      {
+        "data": "2026-09-01",
+        "tipo": "manutencao",
+        "assunto": "spec de fila padrao + automacao de fila tipo webhook"
+      },
+      {
+        "data": "2026-09-01",
+        "tipo": "outro",
+        "assunto": "Ajusta validação tipada dos workspaces"
+      },
+      {
+        "data": "2026-09-01",
+        "tipo": "outro",
+        "assunto": "Corrige tipagem da exclusão do espaço pessoal"
+      },
+      {
+        "data": "2026-09-01",
+        "tipo": "outro",
+        "assunto": "Adiciona espaços pessoal e de acessos remotos"
+      },
+      {
+        "data": "2026-09-01",
+        "tipo": "outro",
+        "assunto": "Melhora UX do inbox"
+      },
+      {
+        "data": "2026-09-01",
+        "tipo": "corrigiu",
+        "assunto": "script para criar o primeiro usuario de equipe em producao"
+      },
+      {
+        "data": "2026-08-31",
+        "tipo": "corrigiu",
+        "assunto": "desligar API do agente cloud, que travava o boot"
+      },
+      {
+        "data": "2026-08-31",
+        "tipo": "corrigiu",
+        "assunto": "fixar SUPERMARKET_NAME antes do primeiro build verde"
+      },
+      {
+        "data": "2026-08-28",
+        "tipo": "manutencao",
+        "assunto": "instancia dedicada Mais Varejo"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "presenca da equipe, audio no atendimento e transferencia de chamado"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "manutencao",
+        "assunto": "desenho de nova conversa por contato e de audio no atendimento"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "corrigiu",
+        "assunto": "revogar sessao quando papel ou status do usuario mudar"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "CRUD de usuarios restrito ao administrador da empresa"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "recuperacao de senha com entrega pelo WhatsApp"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "tokens seguros para recuperacao de senha"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "relatorio de tickets com paginacao por cursor"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "metricas por fila com fechamento do total"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "metricas do atendimento automatico"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "producao por atendente na API de metricas"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "corrigiu",
+        "assunto": "interpretar periodo personalizado no fuso da organizacao"
+      }
+    ],
+    "color": "#22d3ee"
+  },
+  {
+    "name": "Mavo Gerenciamento",
+    "status": "Active",
+    "type": "Software",
+    "progress": 0,
+    "stack": "Next.js + Tailwind",
+    "repo": "willy-henrique/mavo-metricas",
+    "aliases": [
+      "gerenciamento",
+      "mavo",
+      "mavo gerenciamento",
+      "mavo metricas",
+      "mavo-gerenciamento",
+      "mavo-metricas",
+      "mavogerenciamento",
+      "mavometricas",
+      "metricas"
+    ],
+    "vocab": [
+      "relatorios",
+      "painel",
+      "tabela",
+      "talk"
+    ],
+    "ultimoCommit": "2026-08-31",
+    "evolucoes30d": 13,
+    "correcoes30d": 1,
+    "historico": [
+      {
+        "data": "2026-08-31",
+        "tipo": "corrigiu",
+        "assunto": "move metricas para relatorios e agiliza navegacao"
+      },
+      {
+        "data": "2026-08-31",
+        "tipo": "evoluiu",
+        "assunto": "destaca clientes recorrentes no painel"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "renova interface com tema escuro e relatorios em PDF"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "manutencao",
+        "assunto": "adiciona guia de configuracao e deploy"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "configuracoes da empresa com gestao de usuarios"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "telas de recuperacao e redefinicao de senha"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "relatorios com tabela paginada e exportacao CSV"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "desempenho do atendimento automatico com funil de destinos"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "tela de producao da equipe com tabela ordenavel"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "visao geral com metrica heroi, secundarias e ritmo do periodo"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "coluna Agora com polling que pausa em aba oculta"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "barra de contexto com pilulas de filtro e formatacao pt-BR"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "login com aquecimento do Talk e casca do painel"
+      },
+      {
+        "data": "2026-08-24",
+        "tipo": "evoluiu",
+        "assunto": "cliente do Talk e sessao em cookie httpOnly"
+      },
+      {
+        "data": "2026-08-24",
+        "tipo": "evoluiu",
+        "assunto": "esqueleto do Mavo Gerenciamento com tokens da paleta Mavo"
+      }
+    ],
+    "color": "#a78bfa"
+  },
+  {
+    "name": "Mavo Talk",
+    "status": "Active",
+    "type": "Software",
+    "progress": 0,
+    "stack": "Next.js + Supabase + Prisma + PostgreSQL + Tailwind",
+    "repo": "willy-henrique/willtalk",
+    "aliases": [
+      "mavo",
+      "mavo talk",
+      "mavotalk",
+      "talk",
+      "willtalk"
+    ],
+    "vocab": [
+      "whatsapp",
+      "metricas",
+      "atendimento",
+      "fuso",
+      "loja",
+      "pareamento",
+      "sessao",
+      "status",
+      "atendente",
+      "periodo",
+      "queue",
+      "conversa",
+      "login",
+      "assinatura"
+    ],
+    "ultimoCommit": "2026-08-31",
+    "evolucoes30d": 31,
+    "correcoes30d": 36,
+    "historico": [
+      {
+        "data": "2026-08-31",
+        "tipo": "manutencao",
+        "assunto": "versiona relatorios de evolucao, mapeamento de arquitetura e runbook"
+      },
+      {
+        "data": "2026-08-31",
+        "tipo": "evoluiu",
+        "assunto": "campanhas de disparo automatico em grupos do WhatsApp"
+      },
+      {
+        "data": "2026-08-31",
+        "tipo": "evoluiu",
+        "assunto": "adiciona metricas de recorrencia por cliente"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "presenca da equipe, audio no atendimento e transferencia de chamado"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "manutencao",
+        "assunto": "desenho de nova conversa por contato e de audio no atendimento"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "corrigiu",
+        "assunto": "revogar sessao quando papel ou status do usuario mudar"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "CRUD de usuarios restrito ao administrador da empresa"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "recuperacao de senha com entrega pelo WhatsApp"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "tokens seguros para recuperacao de senha"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "relatorio de tickets com paginacao por cursor"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "metricas por fila com fechamento do total"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "metricas do atendimento automatico"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "producao por atendente na API de metricas"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "corrigiu",
+        "assunto": "interpretar periodo personalizado no fuso da organizacao"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "manutencao",
+        "assunto": "varredura de isolamento entre empresas nas rotas de metricas"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "serie temporal e opcoes de filtro da API de metricas"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "consulta e rota dos indicadores do periodo"
+      },
+      {
+        "data": "2026-08-25",
+        "tipo": "evoluiu",
+        "assunto": "consulta e rota do bloco Agora"
+      },
+      {
+        "data": "2026-08-24",
+        "tipo": "evoluiu",
+        "assunto": "rotas health, login e me da API de metricas v1"
+      },
+      {
+        "data": "2026-08-24",
+        "tipo": "evoluiu",
+        "assunto": "guard das rotas de metricas com token de servico e papel"
+      }
+    ],
+    "color": "#f59e0b"
+  },
   {
     "name": "WillTech Bloco",
     "status": "Active",
@@ -31,16 +411,46 @@ export const CATALOGO: CatalogoProjeto[] = [
       "credenciais",
       "notas",
       "tailwind",
-      "login",
-      "google",
-      "painel",
-      "cliente",
-      "controle"
+      "completa",
+      "atividade",
+      "importacao",
+      "catalogo",
+      "login"
     ],
     "ultimoCommit": "2026-08-26",
-    "evolucoes30d": 4,
+    "evolucoes30d": 8,
     "correcoes30d": 0,
     "historico": [
+      {
+        "data": "2026-08-26",
+        "tipo": "melhorou",
+        "assunto": "elimina N+1 e polling por card"
+      },
+      {
+        "data": "2026-08-26",
+        "tipo": "manutencao",
+        "assunto": "bateria completa + correcoes encontradas"
+      },
+      {
+        "data": "2026-08-26",
+        "tipo": "evoluiu",
+        "assunto": "puxa atividade real do GitHub por funcao serverless"
+      },
+      {
+        "data": "2026-08-26",
+        "tipo": "evoluiu",
+        "assunto": "ordena os cards por atividade -- quem mexe mais sobe"
+      },
+      {
+        "data": "2026-08-26",
+        "tipo": "evoluiu",
+        "assunto": "importacao do catalogo para o Firestore"
+      },
+      {
+        "data": "2026-08-26",
+        "tipo": "evoluiu",
+        "assunto": "catalogo dos repositorios locais com vocabulario e historico"
+      },
       {
         "data": "2026-08-26",
         "tipo": "evoluiu",
@@ -110,34 +520,9 @@ export const CATALOGO: CatalogoProjeto[] = [
         "data": "2026-01-28",
         "tipo": "evoluiu",
         "assunto": "melhorias no frontend de notas e .env - UI/UX aprimorada com design moderno, validações e feedback visual melhorado"
-      },
-      {
-        "data": "2026-01-27",
-        "tipo": "corrigiu",
-        "assunto": "corrige sintaxe do Tailwind CSS v4 - Atualiza index.css para usar @import ao invés de @tailwind diretivas - Tailwind v4 requer nova sintaxe de importação"
-      },
-      {
-        "data": "2026-01-27",
-        "tipo": "corrigiu",
-        "assunto": "corrige build do Tailwind CSS v4 e problema de projetos desaparecendo - Atualiza PostCSS para usar @tailwindcss/postcss (Tailwind v4) - Corrige listener do Firestore para não substituir projetos por iniciais - Adiciona tratamento de erros melhorado no listener - Adiciona fallback para queries sem orderBy quando índice não existe - Melhora lógica de migração de projetos iniciais"
-      },
-      {
-        "data": "2026-01-27",
-        "tipo": "evoluiu",
-        "assunto": "melhorias completas no sistema de pagamentos e UI responsiva - Pagamentos recorrentes mensais com dia específico - Botão para marcar pagamento como pago - Alertas visuais vermelhos para pagamentos vencidos no ProjectCard - Campo .env nas credenciais para salvar arquivos de ambiente - UI melhorada de notas com formulário maior - UI melhorada de informações com foco em URLs - 100% responsivo para mobile com breakpoints adaptativos - Configuração do Tailwind CSS como PostCSS plugin - Documentação de configuração do Firestore"
-      },
-      {
-        "data": "2026-01-27",
-        "tipo": "evoluiu",
-        "assunto": "adiciona sistema completo de bloco de notas por projeto - Página de detalhes do projeto com 4 abas (Credenciais, Pagamentos, Notas, Informações) - Gerenciamento de credenciais de desenvolvimento com senhas ocultas - Sistema de pagamentos com alertas visuais para vencimentos - Notas e anotações por projeto - Informações gerais editáveis (cliente, URLs, descrição) - Integração completa com Firestore - Modal para adicionar/editar projetos - Navegação entre lista e detalhes"
-      },
-      {
-        "data": "2026-01-27",
-        "tipo": "outro",
-        "assunto": "first commit"
       }
     ],
-    "color": "#22d3ee"
+    "color": "#34d399"
   },
   {
     "name": "Mavo AI",
@@ -173,8 +558,8 @@ export const CATALOGO: CatalogoProjeto[] = [
       "base"
     ],
     "ultimoCommit": "2026-08-25",
-    "evolucoes30d": 9,
-    "correcoes30d": 25,
+    "evolucoes30d": 4,
+    "correcoes30d": 14,
     "historico": [
       {
         "data": "2026-08-25",
@@ -277,239 +662,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "plano de execucao passo a passo da migracao V4 Flash"
       }
     ],
-    "color": "#a78bfa"
-  },
-  {
-    "name": "Mavo Gerenciamento",
-    "status": "Active",
-    "type": "Software",
-    "progress": 0,
-    "stack": "Next.js + Tailwind",
-    "repo": "willy-henrique/mavo-metricas",
-    "aliases": [
-      "gerenciamento",
-      "mavo",
-      "mavo gerenciamento",
-      "mavo metricas",
-      "mavo-gerenciamento",
-      "mavo-metricas",
-      "mavogerenciamento",
-      "mavometricas",
-      "metricas"
-    ],
-    "vocab": [
-      "relatorios",
-      "tabela",
-      "talk"
-    ],
-    "ultimoCommit": "2026-08-25",
-    "evolucoes30d": 12,
-    "correcoes30d": 0,
-    "historico": [
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "renova interface com tema escuro e relatorios em PDF"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "manutencao",
-        "assunto": "adiciona guia de configuracao e deploy"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "configuracoes da empresa com gestao de usuarios"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "telas de recuperacao e redefinicao de senha"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "relatorios com tabela paginada e exportacao CSV"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "desempenho do atendimento automatico com funil de destinos"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "tela de producao da equipe com tabela ordenavel"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "visao geral com metrica heroi, secundarias e ritmo do periodo"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "coluna Agora com polling que pausa em aba oculta"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "barra de contexto com pilulas de filtro e formatacao pt-BR"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "login com aquecimento do Talk e casca do painel"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "cliente do Talk e sessao em cookie httpOnly"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "esqueleto do Mavo Gerenciamento com tokens da paleta Mavo"
-      }
-    ],
-    "color": "#f59e0b"
-  },
-  {
-    "name": "Mavo Talk",
-    "status": "Active",
-    "type": "Software",
-    "progress": 0,
-    "stack": "Next.js + Supabase + Prisma + PostgreSQL + Tailwind",
-    "repo": "willy-henrique/willtalk",
-    "aliases": [
-      "mavo",
-      "mavo talk",
-      "mavotalk",
-      "talk",
-      "willtalk"
-    ],
-    "vocab": [
-      "whatsapp",
-      "metricas",
-      "atendimento",
-      "fuso",
-      "loja",
-      "pareamento",
-      "sessao",
-      "status",
-      "atendente",
-      "periodo",
-      "queue",
-      "conversa",
-      "login",
-      "assinatura"
-    ],
-    "ultimoCommit": "2026-08-25",
-    "evolucoes30d": 37,
-    "correcoes30d": 53,
-    "historico": [
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "presenca da equipe, audio no atendimento e transferencia de chamado"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "manutencao",
-        "assunto": "desenho de nova conversa por contato e de audio no atendimento"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "corrigiu",
-        "assunto": "revogar sessao quando papel ou status do usuario mudar"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "CRUD de usuarios restrito ao administrador da empresa"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "recuperacao de senha com entrega pelo WhatsApp"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "tokens seguros para recuperacao de senha"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "relatorio de tickets com paginacao por cursor"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "metricas por fila com fechamento do total"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "metricas do atendimento automatico"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "producao por atendente na API de metricas"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "corrigiu",
-        "assunto": "interpretar periodo personalizado no fuso da organizacao"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "manutencao",
-        "assunto": "varredura de isolamento entre empresas nas rotas de metricas"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "serie temporal e opcoes de filtro da API de metricas"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "consulta e rota dos indicadores do periodo"
-      },
-      {
-        "data": "2026-08-25",
-        "tipo": "evoluiu",
-        "assunto": "consulta e rota do bloco Agora"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "rotas health, login e me da API de metricas v1"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "guard das rotas de metricas com token de servico e papel"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "resolucao de periodo no fuso da organizacao com teto de 90 dias"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "evoluiu",
-        "assunto": "envelope e erros padronizados da API de metricas"
-      },
-      {
-        "data": "2026-08-24",
-        "tipo": "corrigiu",
-        "assunto": "devolver os contadores de situacao para a tela do Inbox"
-      }
-    ],
-    "color": "#34d399"
+    "color": "#f472b6"
   },
   {
     "name": "barber-leonico",
@@ -646,7 +799,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "remove client HTTP do Asaas no frontend (sem uso)"
       }
     ],
-    "color": "#f472b6"
+    "color": "#60a5fa"
   },
   {
     "name": "pet",
@@ -696,7 +849,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initial commit from Create Next App"
       }
     ],
-    "color": "#60a5fa"
+    "color": "#fb923c"
   },
   {
     "name": "Portfólio Willy",
@@ -734,7 +887,7 @@ export const CATALOGO: CatalogoProjeto[] = [
       "links"
     ],
     "ultimoCommit": "2026-07-29",
-    "evolucoes30d": 1,
+    "evolucoes30d": 0,
     "correcoes30d": 0,
     "historico": [
       {
@@ -838,7 +991,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Adiciona imagens dos novos projetos e atualiza componentes"
       }
     ],
-    "color": "#fb923c"
+    "color": "#4ade80"
   },
   {
     "name": "Escola Estrelinha",
@@ -903,7 +1056,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initial commit from Create Next App"
       }
     ],
-    "color": "#4ade80"
+    "color": "#c084fc"
   },
   {
     "name": "WillTech ERP",
@@ -1042,7 +1195,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "corrige UX do card de pedido no board (menu cortado e botao espremido)"
       }
     ],
-    "color": "#c084fc"
+    "color": "#facc15"
   },
   {
     "name": "Exclusão de Conta",
@@ -1085,7 +1238,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "first commit"
       }
     ],
-    "color": "#facc15"
+    "color": "#22d3ee"
   },
   {
     "name": "AquiResolve App",
@@ -1227,7 +1380,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "entrega de notificacao (fcm_tokens) + estados no app + regra"
       }
     ],
-    "color": "#22d3ee"
+    "color": "#a78bfa"
   },
   {
     "name": "AquiResolve Site",
@@ -1312,7 +1465,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initialized repository for project Seu emprego é aqui design"
       }
     ],
-    "color": "#a78bfa"
+    "color": "#f59e0b"
   },
   {
     "name": "AquiResolve Painel",
@@ -1455,7 +1608,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "teste 2"
       }
     ],
-    "color": "#f59e0b"
+    "color": "#34d399"
   },
   {
     "name": "WillTech Pesqueiros",
@@ -1602,7 +1755,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "atualizacao"
       }
     ],
-    "color": "#34d399"
+    "color": "#f472b6"
   },
   {
     "name": "life-pro",
@@ -1629,7 +1782,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initial commit from Create Next App"
       }
     ],
-    "color": "#f472b6"
+    "color": "#60a5fa"
   },
   {
     "name": "bloco-maisvarejo",
@@ -1766,7 +1919,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "atualização 2.1"
       }
     ],
-    "color": "#60a5fa"
+    "color": "#fb923c"
   },
   {
     "name": "AgroOliveira",
@@ -1809,7 +1962,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initial commit"
       }
     ],
-    "color": "#fb923c"
+    "color": "#4ade80"
   },
   {
     "name": "projeto-pitdog",
@@ -1841,7 +1994,7 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Initial commit"
       }
     ],
-    "color": "#4ade80"
+    "color": "#c084fc"
   },
   {
     "name": "GRDEDETIZAÇÃO",
@@ -1975,6 +2128,6 @@ export const CATALOGO: CatalogoProjeto[] = [
         "assunto": "Adicionar login especial para willydev"
       }
     ],
-    "color": "#c084fc"
+    "color": "#facc15"
   }
 ];

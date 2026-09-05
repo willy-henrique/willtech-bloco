@@ -17,6 +17,7 @@ vi.mock('../../../AppContext', () => ({
 import EisenhowerMatrix from '../../../components/EisenhowerMatrix';
 
 beforeEach(() => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   addTask.mockReset().mockResolvedValue(undefined);
   toggleTask.mockReset().mockResolvedValue(undefined);
   deleteTask.mockReset().mockResolvedValue(undefined);

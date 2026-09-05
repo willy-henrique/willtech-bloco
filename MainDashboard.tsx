@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Code2,
   DownloadCloud,
+  FileText,
   FolderKanban,
   Gauge,
   Import,
@@ -28,8 +29,9 @@ import { useAuth } from './src/auth/AuthContext';
 import CaptureChat from './src/features/capture/CaptureChat';
 import ImportarProjetos from './src/features/projects/ImportarProjetos';
 import { ordenarPorAtividade } from './src/features/projects/ordenarPorAtividade';
-import AtualizarDoGitHub from './src/features/projects/AtualizarDoGitHub';
-import { projectPaymentsService } from './src/services/firestoreService';
+import AtualizarDoGitHub, { buscarAtividadeNoGitHub } from './src/features/projects/AtualizarDoGitHub';
+import { projectPaymentsService, projectNotesService } from './src/services/firestoreService';
+import GlobalNotes from './src/features/notes/GlobalNotes';
 import ProjectCard from './components/ProjectCard';
 import ProjectModal from './components/ProjectModal';
 import ProjectDetails from './components/ProjectDetails';
@@ -38,20 +40,25 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import FinanceHub from './components/FinanceHub';
-import { Project, TaskPriority, type ProjectPayment } from './types';
+import { Project, TaskPriority, type ProjectPayment, type ProjectNote } from './types';
 
-type View = 'overview' | 'projects' | 'tasks' | 'finance' | 'vault' | 'resources';
+type View = 'overview' | 'projects' | 'notes' | 'finance' | 'tasks' | 'vault' | 'resources';
 
 const VIEW_META: Record<View, { title: string; eyebrow: string; description: string }> = {
   overview: {
-    title: 'Visão geral',
-    eyebrow: 'Central de operações',
-    description: 'Projetos, prioridades e próximos movimentos em um só lugar.',
+    title: 'Visǜo geral',
+    eyebrow: 'Central de opera����es',
+    description: 'Projetos, prioridades e pr��ximos movimentos em um s�� lugar.',
   },
   projects: {
     title: 'Projetos',
-    eyebrow: 'Portfólio',
+    eyebrow: 'Portf��lio',
     description: 'Acompanhe o ritmo e entre rapidamente no contexto de cada produto.',
+  },
+  notes: {
+    title: 'Anotações',
+    eyebrow: 'Base de conhecimento',
+    description: 'Anotações, atas e diretrizes dos seus projetos e gerais.',
   },
   tasks: {
     title: 'Prioridades',
@@ -59,32 +66,33 @@ const VIEW_META: Record<View, { title: string; eyebrow: string; description: str
     description: 'Decida o que fazer agora, agendar, delegar ou tirar do caminho.',
   },
   finance: {
-    title: 'Finanças',
+    title: 'Finan��as',
     eyebrow: 'Finance Hub',
-    description: 'Liquidez, compromissos e metas financeiras da operação.',
+    description: 'Liquidez, compromissos e metas financeiras da opera��ǜo.',
   },
   vault: {
     title: 'Cofre',
     eyebrow: 'Acesso seguro',
-    description: 'Credenciais e segredos organizados por tipo, sempre à mão.',
+    description: 'Credenciais e segredos organizados por tipo, sempre �� mǜo.',
   },
   resources: {
-    title: 'Base técnica',
+    title: 'Base tǸcnica',
     eyebrow: 'Recursos',
-    description: 'Snippets reutilizáveis, consultas e agenda contratual.',
+    description: 'Snippets reutilizǭveis, consultas e agenda contratual.',
   },
 };
 
 const PRIMARY_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
   { view: 'overview', label: 'Visão geral', icon: Gauge },
   { view: 'projects', label: 'Projetos', icon: FolderKanban },
-  { view: 'tasks', label: 'Prioridades', icon: ListTodo },
+  { view: 'notes', label: 'Anotações', icon: FileText },
   { view: 'finance', label: 'Finanças', icon: WalletCards },
+  { view: 'tasks', label: 'Prioridades', icon: ListTodo },
 ];
 
 const WORKSPACE_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
   { view: 'vault', label: 'Cofre', icon: LockKeyhole },
-  { view: 'resources', label: 'Base técnica', icon: Code2 },
+  { view: 'resources', label: 'Base tǸcnica', icon: Code2 },
 ];
 
 const MainDashboard: React.FC = () => {
@@ -106,10 +114,28 @@ const MainDashboard: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectQuery, setProjectQuery] = useState('');
   // Carregado UMA vez e distribuido aos cards, em vez de cada card consultar.
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
+  const [allNotes, setAllNotes] = useState<ProjectNote[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+
+  const loadAllNotes = async () => {
+    setIsLoadingNotes(true);
+    try {
+      const lista = await projectNotesService.getAll();
+      setAllNotes(lista);
+    } catch (err) {
+      console.error('Erro ao carregar notas:', err);
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAllNotes();
+  }, []);
 
   useEffect(() => {
     let ativo = true;
@@ -150,9 +176,13 @@ const MainDashboard: React.FC = () => {
         )
       : projects;
 
-    // Quem mexeu mais nos últimos 30 dias sobe.
+    // Quem mexeu mais nos ǧltimos 30 dias sobe.
     return ordenarPorAtividade(filtrados);
   }, [projectQuery, projects]);
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === selectedProjectId) ?? null,
+    [projects, selectedProjectId],
+  );
 
   const userName = user?.displayName?.trim() || user?.email?.split('@')[0] || 'Will';
   const userInitial = userName.charAt(0).toUpperCase();
@@ -193,7 +223,7 @@ const MainDashboard: React.FC = () => {
           </div>
           <h3 className="text-sm font-semibold text-neutral-200">Nenhum projeto encontrado</h3>
           <p className="mt-1 max-w-sm text-sm text-neutral-500">
-            Ajuste a busca ou crie um novo projeto para começar.
+            Ajuste a busca ou crie um novo projeto para come��ar.
           </p>
         </div>
       );
@@ -212,7 +242,7 @@ const MainDashboard: React.FC = () => {
               project={project}
               tasks={tasks}
               payments={payments}
-              onOpen={() => setSelectedProject(project)}
+              onOpen={() => setSelectedProjectId(project.id)}
               onEdit={() => {
                 setEditingProject(project);
                 setIsProjectModalOpen(true);
@@ -224,8 +254,67 @@ const MainDashboard: React.FC = () => {
     );
   };
 
+  const handleAddGlobalNote = async (note: Omit<ProjectNote, 'id' | 'createdAt' | 'updatedAt'>) => {
+    await projectNotesService.create(note);
+    await loadAllNotes();
+  };
+
+  const handleUpdateGlobalNote = async (id: string, updates: Partial<ProjectNote>) => {
+    await projectNotesService.update(id, updates);
+    await loadAllNotes();
+  };
+
+  const handleDeleteGlobalNote = async (id: string) => {
+    await projectNotesService.delete(id);
+    await loadAllNotes();
+  };
+
   if (selectedProject) {
-    return <ProjectDetails project={selectedProject} onBack={() => setSelectedProject(null)} />;
+    return (
+      <>
+        <ProjectDetails
+          project={selectedProject}
+          onBack={() => setSelectedProjectId(null)}
+          onConfigure={() => {
+            setEditingProject(selectedProject);
+            setIsProjectModalOpen(true);
+          }}
+          onRefreshUpdates={async () => {
+            if (!selectedProject.repo) {
+              throw new Error('Configure o reposit��rio GitHub deste projeto primeiro.');
+            }
+            const resultados = await buscarAtividadeNoGitHub([selectedProject.repo]);
+            const resultado = resultados.find((item) => item.repo === selectedProject.repo);
+            if (!resultado) {
+              throw new Error('O GitHub nǜo devolveu informa����es para este projeto.');
+            }
+            if (!resultado.ok) {
+              throw new Error(resultado.erro || 'Nǜo foi poss��vel consultar este reposit��rio.');
+            }
+            await updateProject(selectedProject.id, {
+              ultimoCommit: resultado.ultimoCommit,
+              evolucoes30d: resultado.evolucoes30d,
+              correcoes30d: resultado.correcoes30d,
+              historico: resultado.historico,
+            });
+          }}
+        />
+        <ProjectModal
+          isOpen={isProjectModalOpen}
+          onClose={() => {
+            setIsProjectModalOpen(false);
+            setEditingProject(null);
+          }}
+          onSave={addProject}
+          onUpdate={updateProject}
+          onDelete={async (id) => {
+            await deleteProject(id);
+            setSelectedProjectId(null);
+          }}
+          project={editingProject}
+        />
+      </>
+    );
   }
 
   const meta = VIEW_META[activeView];
@@ -256,7 +345,7 @@ const MainDashboard: React.FC = () => {
             className="group flex w-full items-center gap-3 rounded-[14px] bg-emerald-300 px-3.5 py-3 text-left text-[13px] font-semibold text-[#07110c] shadow-[0_10px_30px_rgba(68,214,142,0.12)] transition hover:bg-emerald-200"
           >
             <Sparkles size={16} />
-            <span className="flex-1">Captura rápida</span>
+            <span className="flex-1">Captura rǭpida</span>
             <span className="rounded-md bg-black/10 px-1.5 py-0.5 text-[9px] font-bold">+</span>
           </button>
         </div>
@@ -264,7 +353,7 @@ const MainDashboard: React.FC = () => {
         <nav className="mt-7 flex-1 space-y-6 overflow-y-auto px-1">
           <div>
             <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-              Operação
+              Opera��ǜo
             </p>
             <div className="space-y-1">
               {PRIMARY_NAV.map(({ view, label, icon: Icon }) => (
@@ -419,7 +508,7 @@ const MainDashboard: React.FC = () => {
             >
               <Sparkles size={15} className="text-emerald-300" />
               Capturar ideia
-              <span className="ml-2 hidden rounded-md border border-white/[0.07] px-1.5 py-0.5 text-[9px] text-neutral-600 xl:inline">rápido</span>
+              <span className="ml-2 hidden rounded-md border border-white/[0.07] px-1.5 py-0.5 text-[9px] text-neutral-600 xl:inline">rǭpido</span>
             </button>
             <button
               type="button"
@@ -454,13 +543,13 @@ const MainDashboard: React.FC = () => {
                         {currentDate}
                       </div>
                       <h2 className="max-w-xl text-[28px] font-semibold leading-[1.08] tracking-[-0.045em] text-white md:text-[38px]">
-                        Bom trabalho, {userName.split(' ')[0]}. <span className="text-neutral-500">Sua operação está aqui.</span>
+                        Bom trabalho, {userName.split(' ')[0]}. <span className="text-neutral-500">Sua opera��ǜo estǭ aqui.</span>
                       </h2>
                       <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-400 md:text-[15px]">
-                        Você tem <strong className="font-medium text-neutral-200">{openTasks.length} tarefas abertas</strong>
+                        VocǦ tem <strong className="font-medium text-neutral-200">{openTasks.length} tarefas abertas</strong>
                         {attentionTasks.length > 0
-                          ? `, sendo ${attentionTasks.length} que pedem atenção primeiro.`
-                          : ' e nenhuma prioridade crítica agora.'}
+                          ? `, sendo ${attentionTasks.length} que pedem aten��ǜo primeiro.`
+                          : ' e nenhuma prioridade cr��tica agora.'}
                       </p>
                     </div>
 
@@ -486,9 +575,9 @@ const MainDashboard: React.FC = () => {
                 <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                   {[
                     { label: 'Projetos ativos', value: activeProjects, icon: FolderKanban, tone: 'emerald', note: `${projects.length} no total` },
-                    { label: 'Tarefas abertas', value: openTasks.length, icon: ListTodo, tone: 'violet', note: `${tasks.length - openTasks.length} concluídas` },
-                    { label: 'Progresso médio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portfólio' },
-                    { label: 'Pedem atenção', value: attentionTasks.length, icon: ShieldCheck, tone: 'amber', note: attentionTasks.length ? 'críticas ou urgentes' : 'tudo sob controle' },
+                    { label: 'Tarefas abertas', value: openTasks.length, icon: ListTodo, tone: 'violet', note: `${tasks.length - openTasks.length} conclu��das` },
+                    { label: 'Progresso mǸdio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portf��lio' },
+                    { label: 'Pedem aten��ǜo', value: attentionTasks.length, icon: ShieldCheck, tone: 'amber', note: attentionTasks.length ? 'cr��ticas ou urgentes' : 'tudo sob controle' },
                   ].map(({ label, value, icon: Icon, tone, note }) => (
                     <div key={label} className="metric-card rounded-[20px] border border-white/[0.065] p-4 md:p-5">
                       <div className="flex items-start justify-between gap-3">
@@ -508,7 +597,7 @@ const MainDashboard: React.FC = () => {
                 <div className="grid items-start gap-6 xl:grid-cols-12">
                   <section className="xl:col-span-8">
                     <SectionHeading
-                      eyebrow="Portfólio"
+                      eyebrow="Portf��lio"
                       title="Projetos em movimento"
                       description="Abra um projeto para acessar notas, pagamentos e credenciais."
                       action={
@@ -528,8 +617,8 @@ const MainDashboard: React.FC = () => {
                     <section className="surface-panel overflow-hidden rounded-[22px] border border-white/[0.07]">
                       <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
                         <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Próximo passo</p>
-                          <h3 className="mt-1 text-sm font-semibold text-neutral-200">Fila de atenção</h3>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Pr��ximo passo</p>
+                          <h3 className="mt-1 text-sm font-semibold text-neutral-200">Fila de aten��ǜo</h3>
                         </div>
                         <button
                           type="button"
@@ -570,7 +659,7 @@ const MainDashboard: React.FC = () => {
                           <div className="px-5 py-8 text-center">
                             <CheckCircle2 className="mx-auto text-emerald-300/70" size={22} />
                             <p className="mt-3 text-xs font-medium text-neutral-300">Fila sob controle</p>
-                            <p className="mt-1 text-[11px] text-neutral-600">Nada crítico ou urgente agora.</p>
+                            <p className="mt-1 text-[11px] text-neutral-600">Nada cr��tico ou urgente agora.</p>
                           </div>
                         )}
                       </div>
@@ -594,7 +683,7 @@ const MainDashboard: React.FC = () => {
                       type="search"
                       value={projectQuery}
                       onChange={(event) => setProjectQuery(event.target.value)}
-                      placeholder="Buscar por nome, stack ou repositório..."
+                      placeholder="Buscar por nome, stack ou reposit��rio..."
                       className="h-11 w-full rounded-xl border border-white/[0.075] bg-white/[0.025] pl-10 pr-4 text-xs text-neutral-200 outline-none transition placeholder:text-neutral-700 focus:border-emerald-400/25 focus:bg-emerald-400/[0.025]"
                     />
                   </div>
@@ -617,6 +706,21 @@ const MainDashboard: React.FC = () => {
                   </div>
                 </div>
                 {renderProjectGrid()}
+              </section>
+            )}
+
+            {activeView === 'notes' && (
+              <section>
+                <PageIntro meta={meta} />
+                <GlobalNotes
+                  projects={projects}
+                  notes={allNotes}
+                  isLoading={isLoadingNotes}
+                  onAddNote={handleAddGlobalNote}
+                  onUpdateNote={handleUpdateGlobalNote}
+                  onDeleteNote={handleDeleteGlobalNote}
+                  onOpenProject={(id) => setSelectedProjectId(id)}
+                />
               </section>
             )}
 
@@ -668,7 +772,7 @@ const MainDashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCaptureOpen(true)}
-            aria-label="Captura rápida"
+            aria-label="Captura rǭpida"
             className="mx-auto -mt-5 grid h-12 w-12 place-items-center rounded-2xl border-[5px] border-[#0e1210] bg-emerald-300 text-[#07110c] shadow-[0_10px_24px_rgba(52,211,153,0.2)]"
           >
             <Plus size={20} strokeWidth={2.5} />
@@ -739,3 +843,4 @@ const MobileNavButton: React.FC<{
 );
 
 export default MainDashboard;
+
