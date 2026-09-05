@@ -46,7 +46,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
     loadData();
   }, [project.id]);
 
-  // Fechar formulários ao trocar de aba
+  // Fechar formuláriolários ao trocar de aba
   useEffect(() => {
     setShowCredentialForm(false);
     setShowNoteForm(false);
@@ -90,7 +90,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
         const paidDate = new Date(payment.paidAt);
         const currentDay = today.getDate();
         
-        // Se já passou o dia do mês e é um mês diferente do último pagamento
+        // Se já passou o dia do mês e é um mês diferente do úúltimo pagamento
         if (currentDay >= payment.recurringDay && 
             (today.getMonth() !== paidDate.getMonth() || today.getFullYear() !== paidDate.getFullYear())) {
           return 'overdue';
@@ -139,7 +139,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
         return;
       }
       
-      // Remover campos undefined/null/vazios antes de salvar (exceto title que é obrigatório)
+      // Remover campos undefined/null/vazios antes de salvar (exceto title que é obrigatórioório)
       const cleanCredential: Partial<ProjectCredential> = {
         projectId: project.id,
         title: credentialForm.title.trim()
@@ -320,7 +320,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
         return;
       }
       
-      // Remover campos undefined/null/vazios antes de salvar (exceto title e content que são obrigatórios)
+      // Remover campos undefined/null/vazios antes de salvar (exceto title e content que são obrigatórioórios)
       const cleanNote: Partial<ProjectNote> = {
         projectId: project.id,
         title: noteForm.title.trim(),
@@ -536,7 +536,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
                   required
                 />
                 <p className="text-xs text-neutral-500 mb-3 -mt-2">
-                  * Campo obrigatório. Os demais campos são opcionais.
+                  * Campo obrigatórioório. Os demais campos são opcionais.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>

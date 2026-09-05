@@ -46,7 +46,7 @@ type View = 'overview' | 'projects' | 'notes' | 'finance' | 'tasks' | 'vault' | 
 
 const VIEW_META: Record<View, { title: string; eyebrow: string; description: string }> = {
   overview: {
-    title: 'Visǜo geral',
+    title: 'Visão geral',
     eyebrow: 'Central de opera����es',
     description: 'Projetos, prioridades e pr��ximos movimentos em um s�� lugar.',
   },
@@ -76,9 +76,9 @@ const VIEW_META: Record<View, { title: string; eyebrow: string; description: str
     description: 'Credenciais e segredos organizados por tipo, sempre �� mǜo.',
   },
   resources: {
-    title: 'Base tǸcnica',
+    title: 'Base técnica',
     eyebrow: 'Recursos',
-    description: 'Snippets reutilizǭveis, consultas e agenda contratual.',
+    description: 'Snippets reutilizáveis, consultas e agenda contratual.',
   },
 };
 
@@ -92,7 +92,7 @@ const PRIMARY_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
 
 const WORKSPACE_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
   { view: 'vault', label: 'Cofre', icon: LockKeyhole },
-  { view: 'resources', label: 'Base tǸcnica', icon: Code2 },
+  { view: 'resources', label: 'Base técnica', icon: Code2 },
 ];
 
 const MainDashboard: React.FC = () => {
@@ -176,7 +176,7 @@ const MainDashboard: React.FC = () => {
         )
       : projects;
 
-    // Quem mexeu mais nos ǧltimos 30 dias sobe.
+    // Quem mexeu mais nos últimos 30 dias sobe.
     return ordenarPorAtividade(filtrados);
   }, [projectQuery, projects]);
   const selectedProject = useMemo(
@@ -345,7 +345,7 @@ const MainDashboard: React.FC = () => {
             className="group flex w-full items-center gap-3 rounded-[14px] bg-emerald-300 px-3.5 py-3 text-left text-[13px] font-semibold text-[#07110c] shadow-[0_10px_30px_rgba(68,214,142,0.12)] transition hover:bg-emerald-200"
           >
             <Sparkles size={16} />
-            <span className="flex-1">Captura rǭpida</span>
+            <span className="flex-1">Captura rápida</span>
             <span className="rounded-md bg-black/10 px-1.5 py-0.5 text-[9px] font-bold">+</span>
           </button>
         </div>
@@ -508,7 +508,7 @@ const MainDashboard: React.FC = () => {
             >
               <Sparkles size={15} className="text-emerald-300" />
               Capturar ideia
-              <span className="ml-2 hidden rounded-md border border-white/[0.07] px-1.5 py-0.5 text-[9px] text-neutral-600 xl:inline">rǭpido</span>
+              <span className="ml-2 hidden rounded-md border border-white/[0.07] px-1.5 py-0.5 text-[9px] text-neutral-600 xl:inline">rápido</span>
             </button>
             <button
               type="button"
@@ -522,7 +522,7 @@ const MainDashboard: React.FC = () => {
         </header>
 
         <div className="custom-scrollbar flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1540px] px-4 pb-28 pt-6 md:px-7 md:pt-8 lg:px-9 lg:pb-10">
+          <div className="mx-auto max-w-[1540px] px-4 pb-36 pt-4 md:px-7 md:pt-8 lg:px-9 lg:pb-10">
             {dataError && (
               <div role="alert" className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-100">
                 <AlertTriangle className="mt-0.5 shrink-0 text-amber-300" size={17} />
@@ -546,7 +546,7 @@ const MainDashboard: React.FC = () => {
                         Bom trabalho, {userName.split(' ')[0]}. <span className="text-neutral-500">Sua opera��ǜo estǭ aqui.</span>
                       </h2>
                       <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-400 md:text-[15px]">
-                        VocǦ tem <strong className="font-medium text-neutral-200">{openTasks.length} tarefas abertas</strong>
+                        Você tem <strong className="font-medium text-neutral-200">{openTasks.length} tarefas abertas</strong>
                         {attentionTasks.length > 0
                           ? `, sendo ${attentionTasks.length} que pedem aten��ǜo primeiro.`
                           : ' e nenhuma prioridade cr��tica agora.'}
@@ -576,7 +576,7 @@ const MainDashboard: React.FC = () => {
                   {[
                     { label: 'Projetos ativos', value: activeProjects, icon: FolderKanban, tone: 'emerald', note: `${projects.length} no total` },
                     { label: 'Tarefas abertas', value: openTasks.length, icon: ListTodo, tone: 'violet', note: `${tasks.length - openTasks.length} conclu��das` },
-                    { label: 'Progresso mǸdio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portf��lio' },
+                    { label: 'Progresso médio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portf��lio' },
                     { label: 'Pedem aten��ǜo', value: attentionTasks.length, icon: ShieldCheck, tone: 'amber', note: attentionTasks.length ? 'cr��ticas ou urgentes' : 'tudo sob controle' },
                   ].map(({ label, value, icon: Icon, tone, note }) => (
                     <div key={label} className="metric-card rounded-[20px] border border-white/[0.065] p-4 md:p-5">
@@ -772,7 +772,7 @@ const MainDashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCaptureOpen(true)}
-            aria-label="Captura rǭpida"
+            aria-label="Captura rápida"
             className="mx-auto -mt-5 grid h-12 w-12 place-items-center rounded-2xl border-[5px] border-[#0e1210] bg-emerald-300 text-[#07110c] shadow-[0_10px_24px_rgba(52,211,153,0.2)]"
           >
             <Plus size={20} strokeWidth={2.5} />
@@ -833,12 +833,12 @@ const MobileNavButton: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-1 py-1.5 text-[8px] font-medium transition ${
-      active ? 'bg-emerald-300/10 text-emerald-300' : 'text-neutral-600'
+    className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-0.5 py-1 text-[9px] font-medium transition ${
+      active ? 'bg-emerald-400/15 text-emerald-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
     }`}
   >
-    <Icon size={17} strokeWidth={active ? 2.4 : 1.8} />
-    <span className="w-full truncate text-center">{label}</span>
+    <Icon size={18} strokeWidth={active ? 2.4 : 1.8} />
+    <span className="w-full text-center leading-none tracking-tight whitespace-nowrap text-[9px]">{label}</span>
   </button>
 );
 
