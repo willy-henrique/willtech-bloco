@@ -101,8 +101,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         { key: 'deadlines' as const, load: deadlinesService.getAll, set: setDeadlines },
       ];
 
-      const results = await Promise.allSettled(loaders.map(({ load }) => load()));
+      // Timeout de seguranca para evitar carregamento infinito
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 4000));
+      const results: any = await Promise.race([
+        Promise.allSettled(loaders.map(({ load }) => load())),
+        timeoutPromise.then(() => null)
+      ]);
+
       if (cancelled) return;
+      if (!results) {
+        loaders.forEach((loader) => {
+          (loader.set as React.Dispatch<React.SetStateAction<any[]>>)(readCache(loader.key));
+        });
+        setIsLoading(false);
+        return;
+      }
 
       const failed: string[] = [];
       results.forEach((result, index) => {
