@@ -47,12 +47,12 @@ type View = 'overview' | 'projects' | 'notes' | 'finance' | 'tasks' | 'vault' | 
 const VIEW_META: Record<View, { title: string; eyebrow: string; description: string }> = {
   overview: {
     title: 'Visão geral',
-    eyebrow: 'Central de opera����es',
-    description: 'Projetos, prioridades e pr��ximos movimentos em um s�� lugar.',
+    eyebrow: 'Central de operações',
+    description: 'Projetos, prioridades e próximos movimentos em um só lugar.',
   },
   projects: {
     title: 'Projetos',
-    eyebrow: 'Portf��lio',
+    eyebrow: 'Portfólio',
     description: 'Acompanhe o ritmo e entre rapidamente no contexto de cada produto.',
   },
   notes: {
@@ -66,14 +66,14 @@ const VIEW_META: Record<View, { title: string; eyebrow: string; description: str
     description: 'Decida o que fazer agora, agendar, delegar ou tirar do caminho.',
   },
   finance: {
-    title: 'Finan��as',
+    title: 'Finanças',
     eyebrow: 'Finance Hub',
-    description: 'Liquidez, compromissos e metas financeiras da opera��ǜo.',
+    description: 'Liquidez, compromissos e metas financeiras da operação.',
   },
   vault: {
     title: 'Cofre',
     eyebrow: 'Acesso seguro',
-    description: 'Credenciais e segredos organizados por tipo, sempre �� mǜo.',
+    description: 'Credenciais e segredos organizados por tipo, sempre à mão.',
   },
   resources: {
     title: 'Base técnica',
@@ -223,7 +223,7 @@ const MainDashboard: React.FC = () => {
           </div>
           <h3 className="text-sm font-semibold text-neutral-200">Nenhum projeto encontrado</h3>
           <p className="mt-1 max-w-sm text-sm text-neutral-500">
-            Ajuste a busca ou crie um novo projeto para come��ar.
+            Ajuste a busca ou crie um novo projeto para começar.
           </p>
         </div>
       );
@@ -281,15 +281,15 @@ const MainDashboard: React.FC = () => {
           }}
           onRefreshUpdates={async () => {
             if (!selectedProject.repo) {
-              throw new Error('Configure o reposit��rio GitHub deste projeto primeiro.');
+              throw new Error('Configure o repositório GitHub deste projeto primeiro.');
             }
             const resultados = await buscarAtividadeNoGitHub([selectedProject.repo]);
             const resultado = resultados.find((item) => item.repo === selectedProject.repo);
             if (!resultado) {
-              throw new Error('O GitHub nǜo devolveu informa����es para este projeto.');
+              throw new Error('O GitHub não devolveu informações para este projeto.');
             }
             if (!resultado.ok) {
-              throw new Error(resultado.erro || 'Nǜo foi poss��vel consultar este reposit��rio.');
+              throw new Error(resultado.erro || 'Não foi possível consultar este repositório.');
             }
             await updateProject(selectedProject.id, {
               ultimoCommit: resultado.ultimoCommit,
@@ -353,7 +353,7 @@ const MainDashboard: React.FC = () => {
         <nav className="mt-7 flex-1 space-y-6 overflow-y-auto px-1">
           <div>
             <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-700">
-              Opera��ǜo
+              Operação
             </p>
             <div className="space-y-1">
               {PRIMARY_NAV.map(({ view, label, icon: Icon }) => (
@@ -522,7 +522,7 @@ const MainDashboard: React.FC = () => {
         </header>
 
         <div className="custom-scrollbar flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1540px] px-4 pb-36 pt-4 md:px-7 md:pt-8 lg:px-9 lg:pb-10">
+          <div className="mx-auto max-w-[1540px] px-4 pb-48 pt-4 md:px-7 md:pt-8 lg:px-9 lg:pb-10">
             {dataError && (
               <div role="alert" className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-100">
                 <AlertTriangle className="mt-0.5 shrink-0 text-amber-300" size={17} />
@@ -543,13 +543,13 @@ const MainDashboard: React.FC = () => {
                         {currentDate}
                       </div>
                       <h2 className="max-w-xl text-[28px] font-semibold leading-[1.08] tracking-[-0.045em] text-white md:text-[38px]">
-                        Bom trabalho, {userName.split(' ')[0]}. <span className="text-neutral-500">Sua opera��ǜo estǭ aqui.</span>
+                        Bom trabalho, {userName.split(' ')[0]}. <span className="text-neutral-500">Sua operação está aqui.</span>
                       </h2>
                       <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-400 md:text-[15px]">
                         Você tem <strong className="font-medium text-neutral-200">{openTasks.length} tarefas abertas</strong>
                         {attentionTasks.length > 0
-                          ? `, sendo ${attentionTasks.length} que pedem aten��ǜo primeiro.`
-                          : ' e nenhuma prioridade cr��tica agora.'}
+                          ? `, sendo ${attentionTasks.length} que pedem atenção primeiro.`
+                          : ' e nenhuma prioridade crítica agora.'}
                       </p>
                     </div>
 
@@ -575,9 +575,9 @@ const MainDashboard: React.FC = () => {
                 <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                   {[
                     { label: 'Projetos ativos', value: activeProjects, icon: FolderKanban, tone: 'emerald', note: `${projects.length} no total` },
-                    { label: 'Tarefas abertas', value: openTasks.length, icon: ListTodo, tone: 'violet', note: `${tasks.length - openTasks.length} conclu��das` },
-                    { label: 'Progresso médio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portf��lio' },
-                    { label: 'Pedem aten��ǜo', value: attentionTasks.length, icon: ShieldCheck, tone: 'amber', note: attentionTasks.length ? 'cr��ticas ou urgentes' : 'tudo sob controle' },
+                    { label: 'Tarefas abertas', value: openTasks.length, icon: ListTodo, tone: 'violet', note: `${tasks.length - openTasks.length} concluídas` },
+                    { label: 'Progresso médio', value: `${averageProgress}%`, icon: Target, tone: 'blue', note: 'do portfólio' },
+                    { label: 'Pedem atenção', value: attentionTasks.length, icon: ShieldCheck, tone: 'amber', note: attentionTasks.length ? 'críticas ou urgentes' : 'tudo sob controle' },
                   ].map(({ label, value, icon: Icon, tone, note }) => (
                     <div key={label} className="metric-card rounded-[20px] border border-white/[0.065] p-4 md:p-5">
                       <div className="flex items-start justify-between gap-3">
@@ -597,7 +597,7 @@ const MainDashboard: React.FC = () => {
                 <div className="grid items-start gap-6 xl:grid-cols-12">
                   <section className="xl:col-span-8">
                     <SectionHeading
-                      eyebrow="Portf��lio"
+                      eyebrow="Portfólio"
                       title="Projetos em movimento"
                       description="Abra um projeto para acessar notas, pagamentos e credenciais."
                       action={
@@ -617,8 +617,8 @@ const MainDashboard: React.FC = () => {
                     <section className="surface-panel overflow-hidden rounded-[22px] border border-white/[0.07]">
                       <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
                         <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Pr��ximo passo</p>
-                          <h3 className="mt-1 text-sm font-semibold text-neutral-200">Fila de aten��ǜo</h3>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Próximo passo</p>
+                          <h3 className="mt-1 text-sm font-semibold text-neutral-200">Fila de atenção</h3>
                         </div>
                         <button
                           type="button"
@@ -659,7 +659,7 @@ const MainDashboard: React.FC = () => {
                           <div className="px-5 py-8 text-center">
                             <CheckCircle2 className="mx-auto text-emerald-300/70" size={22} />
                             <p className="mt-3 text-xs font-medium text-neutral-300">Fila sob controle</p>
-                            <p className="mt-1 text-[11px] text-neutral-600">Nada cr��tico ou urgente agora.</p>
+                            <p className="mt-1 text-[11px] text-neutral-600">Nada crítico ou urgente agora.</p>
                           </div>
                         )}
                       </div>
@@ -683,7 +683,7 @@ const MainDashboard: React.FC = () => {
                       type="search"
                       value={projectQuery}
                       onChange={(event) => setProjectQuery(event.target.value)}
-                      placeholder="Buscar por nome, stack ou reposit��rio..."
+                      placeholder="Buscar por nome, stack ou repositório..."
                       className="h-11 w-full rounded-xl border border-white/[0.075] bg-white/[0.025] pl-10 pr-4 text-xs text-neutral-200 outline-none transition placeholder:text-neutral-700 focus:border-emerald-400/25 focus:bg-emerald-400/[0.025]"
                     />
                   </div>
@@ -765,21 +765,19 @@ const MainDashboard: React.FC = () => {
           </div>
         </div>
 
-        <nav className="mobile-bottom-nav fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-[20px] border border-white/[0.09] bg-[#101412]/92 p-1.5 shadow-2xl backdrop-blur-xl lg:hidden">
-          {PRIMARY_NAV.slice(0, 2).map(({ view, label, icon: Icon }) => (
-            <MobileNavButton key={view} active={activeView === view} label={label} onClick={() => navigateTo(view)} icon={Icon} />
-          ))}
+        <nav className="mobile-bottom-nav fixed inset-x-3 bottom-3 z-30 flex items-center justify-around rounded-[22px] border border-white/[0.1] bg-[#0d100f]/95 px-2 py-2 shadow-[0_15px_35px_rgba(0,0,0,0.5)] backdrop-blur-2xl lg:hidden">
+          <MobileNavButton active={activeView === 'overview'} label="Início" onClick={() => navigateTo('overview')} icon={Gauge} />
+          <MobileNavButton active={activeView === 'projects'} label="Projetos" onClick={() => navigateTo('projects')} icon={FolderKanban} />
           <button
             type="button"
             onClick={() => setIsCaptureOpen(true)}
             aria-label="Captura rápida"
-            className="mx-auto -mt-5 grid h-12 w-12 place-items-center rounded-2xl border-[5px] border-[#0e1210] bg-emerald-300 text-[#07110c] shadow-[0_10px_24px_rgba(52,211,153,0.2)]"
+            className="mx-1 -mt-4 grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-[4px] border-[#0d100f] bg-emerald-300 text-[#07110c] shadow-[0_8px_20px_rgba(52,211,153,0.3)] transition active:scale-95"
           >
-            <Plus size={20} strokeWidth={2.5} />
+            <Plus size={22} strokeWidth={2.6} />
           </button>
-          {PRIMARY_NAV.slice(2).map(({ view, label, icon: Icon }) => (
-            <MobileNavButton key={view} active={activeView === view} label={label} onClick={() => navigateTo(view)} icon={Icon} />
-          ))}
+          <MobileNavButton active={activeView === 'notes'} label="Anotações" onClick={() => navigateTo('notes')} icon={FileText} />
+          <MobileNavButton active={activeView === 'finance'} label="Finanças" onClick={() => navigateTo('finance')} icon={WalletCards} />
         </nav>
       </main>
 
@@ -833,12 +831,14 @@ const MobileNavButton: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-0.5 py-1 text-[9px] font-medium transition ${
-      active ? 'bg-emerald-400/15 text-emerald-300 font-semibold' : 'text-neutral-400 hover:text-neutral-200'
+    className={`flex flex-1 min-w-0 flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition ${
+      active ? 'text-emerald-300 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
     }`}
   >
-    <Icon size={18} strokeWidth={active ? 2.4 : 1.8} />
-    <span className="w-full text-center leading-none tracking-tight whitespace-nowrap text-[9px]">{label}</span>
+    <div className={`grid h-8 w-11 place-items-center rounded-xl transition ${active ? 'bg-emerald-400/15' : 'bg-transparent'}`}>
+      <Icon size={18} strokeWidth={active ? 2.4 : 1.8} />
+    </div>
+    <span className="text-[10px] leading-tight tracking-tight truncate">{label}</span>
   </button>
 );
 
