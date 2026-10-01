@@ -50,12 +50,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Modo de preview de UI (desenvolvimento local): VITE_UI_PREVIEW=1 no build.
+  // NÃO loga no Firebase: o Firestore continua protegido pelas regras (dados
+  // reais nunca carregam sem login). Serve só para auditar layout/UX.
+  const modoPreview = import.meta.env.VITE_UI_PREVIEW === '1';
+
   useEffect(() => {
+    if (modoPreview) {
+      setUser({ uid: 'preview', email: 'willydev01@gmail.com', emailVerified: true } as User);
+      setLoading(false);
+      return;
+    }
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
     });
-  }, []);
+  }, [modoPreview]);
 
   const signInWithGoogle = useCallback(async () => {
     setError(null);

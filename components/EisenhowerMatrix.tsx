@@ -148,11 +148,11 @@ const EisenhowerMatrix: React.FC = () => {
     <div>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-300/65">Matriz de decisão</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/65">Matriz de decisão</p>
           <h3 className="mt-1.5 text-base font-semibold text-neutral-100">Escolha o trabalho certo</h3>
           <p className="mt-1 text-xs text-neutral-600">{openTasks.length} itens aguardando decisão ou execução.</p>
         </div>
-        <div className="flex items-center gap-2 text-[9px] text-neutral-700">
+        <div className="flex items-center gap-2 text-[10px] text-neutral-700">
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> urgente</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> estratégico</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-sky-300" /> delegável</span>
@@ -161,7 +161,7 @@ const EisenhowerMatrix: React.FC = () => {
 
       {actionError && <p role="alert" className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {QUADRANTS.map((quadrant) => (
           <Quadrant
             key={quadrant.priority}
@@ -240,12 +240,12 @@ const Quadrant: React.FC<QuadrantProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h4 className="text-sm font-semibold text-neutral-200">{title}</h4>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-neutral-700">{coordinate}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-700">{coordinate}</span>
               </div>
-              <p className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-neutral-600">{action}</p>
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-600">{action}</p>
             </div>
           </div>
-          <span className="rounded-lg border border-white/[0.06] bg-white/[0.025] px-2 py-1 text-[9px] tabular-nums text-neutral-500">
+          <span className="rounded-lg border border-white/[0.06] bg-white/[0.025] px-2 py-1 text-[10px] tabular-nums text-neutral-500">
             {tasks.length}
           </span>
         </div>
@@ -313,15 +313,15 @@ const Quadrant: React.FC<QuadrantProps> = ({
                     type="button"
                     onClick={() => onToggle(task.id)}
                     title="Marcar como concluída"
-                    className="mt-0.5 shrink-0 text-neutral-700 transition hover:text-emerald-300"
+                    className="mt-0.5 shrink-0 rounded-lg p-1.5 text-neutral-700 transition hover:text-emerald-300"
                   >
-                    <CheckCircle2 size={16} />
+                    <CheckCircle2 size={18} />
                   </button>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs leading-5 text-neutral-300">{task.description}</p>
                     <div className="mt-1.5 flex items-center gap-1.5">
                       <span className={`h-1 w-1 rounded-full ${styles.dot}`} />
-                      <span className="truncate text-[8px] font-medium uppercase tracking-[0.12em] text-neutral-700">
+                      <span className="truncate text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-700">
                         {project?.name || task.projectId || 'Geral'}
                       </span>
                     </div>
@@ -330,9 +330,9 @@ const Quadrant: React.FC<QuadrantProps> = ({
                     type="button"
                     onClick={() => onDelete(task.id)}
                     title="Excluir tarefa"
-                    className="shrink-0 rounded-lg p-1.5 text-neutral-800 opacity-0 transition hover:bg-rose-400/10 hover:text-rose-300 group-hover:opacity-100 focus:opacity-100"
+                    className="shrink-0 rounded-lg p-2 text-neutral-800 opacity-100 transition hover:bg-rose-400/10 hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100"
                   >
-                    <Trash2 size={13} />
+                    <Trash2 size={15} />
                   </button>
                 </motion.div>
               );

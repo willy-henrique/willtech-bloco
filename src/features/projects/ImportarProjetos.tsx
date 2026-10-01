@@ -94,7 +94,7 @@ const ImportarProjetos: React.FC<{ open: boolean; onClose: () => void }> = ({ op
                   type="button"
                   onClick={fechar}
                   aria-label="Fechar"
-                  className="rounded-lg p-1.5 text-neutral-500 transition hover:bg-neutral-900 hover:text-neutral-200"
+                  className="rounded-lg p-2.5 text-neutral-500 transition hover:bg-neutral-900 hover:text-neutral-200"
                 >
                   <X className="h-4 w-4" />
                 </button>

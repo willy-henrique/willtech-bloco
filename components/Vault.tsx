@@ -115,13 +115,13 @@ const Vault: React.FC<VaultProps> = ({ expanded = false }) => {
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
-              className={`flex min-w-max flex-1 items-center justify-center gap-2 rounded-[10px] px-3 py-2.5 text-[10px] font-medium transition ${
+              className={`flex min-w-max flex-1 items-center justify-center gap-2 rounded-[10px] px-3 py-2.5 text-[11px] font-medium transition ${
                 active ? 'bg-white/[0.07] text-neutral-100 shadow-sm' : 'text-neutral-600 hover:text-neutral-300'
               }`}
             >
               <Icon size={13} />
               {label}
-              <span className={`rounded-md px-1.5 py-0.5 text-[8px] ${active ? 'bg-emerald-300/10 text-emerald-300' : 'bg-white/[0.035]'}`}>
+              <span className={`rounded-md px-1.5 py-0.5 text-[9px] ${active ? 'bg-emerald-300/10 text-emerald-300' : 'bg-white/[0.035]'}`}>
                 {count}
               </span>
             </button>
@@ -208,7 +208,7 @@ const Vault: React.FC<VaultProps> = ({ expanded = false }) => {
                     </div>
                     <div className="min-w-0">
                       <h4 className="truncate text-xs font-medium text-neutral-300">{item.title}</h4>
-                      <p className="mt-0.5 text-[8px] uppercase tracking-[0.14em] text-neutral-700">{item.category}</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-neutral-700">{item.category}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

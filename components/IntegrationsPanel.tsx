@@ -194,7 +194,7 @@ console.log(await resposta.json());`
                       type="button"
                       onClick={() => setEditandoUrl(true)}
                       title="Trocar URL do endpoint"
-                      className="text-neutral-600 transition hover:text-emerald-300"
+                      className="grid h-9 w-9 place-items-center rounded-md text-neutral-600 transition hover:text-emerald-300"
                     >
                       <EditIcon />
                     </button>

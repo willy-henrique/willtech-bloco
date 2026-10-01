@@ -502,9 +502,9 @@ const FinanceHub: React.FC<FinanceHubProps> = ({ embedded = false }) => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full min-w-[560px] text-left">
               <thead>
-                <tr className="border-b border-neutral-800 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                <tr className="border-b border-neutral-800 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                   <th className="p-4">Descrição</th>
                   <th className="p-4">Categoria</th>
                   <th className="p-4">Vencimento</th>

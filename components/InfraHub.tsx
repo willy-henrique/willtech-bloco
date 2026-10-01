@@ -179,11 +179,11 @@ const InfraHub: React.FC<InfraHubProps> = ({ onOpenProject }) => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {projetosFiltrados.map((projeto: Project) => (
             <article
               key={projeto.id}
-              className="surface-panel flex flex-col rounded-[22px] border border-white/[0.07] p-5 transition hover:border-white/[0.14]"
+              className="surface-panel flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-white/[0.07] p-5 transition hover:border-white/[0.14]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -208,11 +208,11 @@ const InfraHub: React.FC<InfraHubProps> = ({ onOpenProject }) => {
                     href={`https://github.com/${projeto.repo}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-neutral-400 transition hover:text-emerald-300"
+                    className="flex min-w-0 items-center gap-1.5 text-neutral-400 transition hover:text-emerald-300"
                   >
-                    <FolderKanban size={12} />
-                    <span className="truncate">{projeto.repo}</span>
-                    <ExternalLink size={10} className="opacity-60" />
+                    <FolderKanban size={12} className="shrink-0" />
+                    <span className="min-w-0 truncate">{projeto.repo}</span>
+                    <ExternalLink size={10} className="shrink-0 opacity-60" />
                   </a>
                 )}
                 {projeto.deployUrl && (
@@ -220,10 +220,10 @@ const InfraHub: React.FC<InfraHubProps> = ({ onOpenProject }) => {
                     href={projeto.deployUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-neutral-400 transition hover:text-emerald-300"
+                    className="flex min-w-0 items-center gap-1.5 text-neutral-400 transition hover:text-emerald-300"
                   >
-                    <ArrowUpRight size={12} />
-                    <span className="truncate">{projeto.deployUrl}</span>
+                    <ArrowUpRight size={12} className="shrink-0" />
+                    <span className="min-w-0 truncate">{projeto.deployUrl}</span>
                   </a>
                 )}
               </div>
@@ -248,10 +248,10 @@ const InfraHub: React.FC<InfraHubProps> = ({ onOpenProject }) => {
               {(projeto.endpoints ?? []).length > 0 && (
                 <ul className="mt-3 space-y-1 border-t border-white/[0.06] pt-3">
                   {(projeto.endpoints ?? []).slice(0, 3).map((ep) => (
-                    <li key={ep.id} className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                    <li key={ep.id} className="flex min-w-0 items-center gap-1.5 text-[10px] text-neutral-500">
                       <Link2 size={10} className="shrink-0 text-neutral-600" />
                       <span className="shrink-0 font-medium text-neutral-400">{ep.label}:</span>
-                      <span className="truncate">{ep.url}</span>
+                      <span className="min-w-0 truncate">{ep.url}</span>
                     </li>
                   ))}
                   {(projeto.endpoints ?? []).length > 3 && (

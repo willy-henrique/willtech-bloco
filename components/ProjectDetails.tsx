@@ -460,7 +460,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
       {actionError && (
         <div role="alert" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
           <span>{actionError}</span>
-          <button type="button" onClick={() => setActionError(null)} aria-label="Fechar erro"><X size={15} /></button>
+          <button type="button" onClick={() => setActionError(null)} aria-label="Fechar erro" className="rounded-lg p-1.5 transition hover:bg-white/5"><X size={15} /></button>
         </div>
       )}
 

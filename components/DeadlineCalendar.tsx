@@ -133,11 +133,11 @@ const DeadlineCalendar: React.FC<DeadlineCalendarProps> = ({ compact = false }) 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 border-b border-neutral-800">
-        <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setActiveTab('lifecycle')} className={`border-b-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${activeTab === 'lifecycle' ? 'border-lime-500 text-white' : 'border-transparent text-neutral-500'}`}><span className="flex items-center gap-2"><Calendar size={14} /> Agenda</span></button>
-          <button type="button" onClick={() => setActiveTab('payments')} className={`border-b-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${activeTab === 'payments' ? 'border-red-500 text-red-400' : 'border-transparent text-neutral-500'}`}><span className="flex items-center gap-2"><DollarSign size={14} /> Pagamentos</span></button>
+        <div className="flex flex-wrap items-center gap-1">
+          <button type="button" onClick={() => setActiveTab('lifecycle')} className={`border-b-2 px-3 py-2 text-[11px] font-bold uppercase tracking-wider ${activeTab === 'lifecycle' ? 'border-lime-500 text-white' : 'border-transparent text-neutral-500'}`}><span className="flex items-center gap-2"><Calendar size={14} /> Agenda</span></button>
+          <button type="button" onClick={() => setActiveTab('payments')} className={`border-b-2 px-3 py-2 text-[11px] font-bold uppercase tracking-wider ${activeTab === 'payments' ? 'border-red-500 text-red-400' : 'border-transparent text-neutral-500'}`}><span className="flex items-center gap-2"><DollarSign size={14} /> Pagamentos</span></button>
         </div>
-        {activeTab === 'lifecycle' && <button type="button" onClick={openCreate} className="mb-1 inline-flex items-center gap-1.5 rounded-lg bg-emerald-300 px-2.5 py-1.5 text-[10px] font-bold text-[#07110c]"><Plus size={13} /> Novo marco</button>}
+        {activeTab === 'lifecycle' && <button type="button" onClick={openCreate} className="mb-1 inline-flex items-center gap-1.5 rounded-lg bg-emerald-300 px-2.5 py-2 text-[11px] font-bold text-[#07110c]"><Plus size={14} /> Novo marco</button>}
       </div>
 
       {actionError && <p role="alert" className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
@@ -167,7 +167,7 @@ const DeadlineCalendar: React.FC<DeadlineCalendarProps> = ({ compact = false }) 
             return <motion.div key={deadline.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3 rounded-xl border border-neutral-800 bg-neutral-950/60 p-3">
               <div className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border ${overdue || urgent ? 'border-red-500/50 bg-red-500/10 text-red-400' : 'border-neutral-700 text-white'}`}><span className="text-[8px] font-bold">{info.month}</span><span className="font-mono text-lg font-black">{info.day}</span></div>
               <div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><h4 className="text-sm font-bold text-white">{deadline.title}</h4>{(urgent || overdue) && <AlertCircle size={14} className="shrink-0 text-red-500" />}</div><div className="mt-2 flex flex-wrap items-center gap-2"><span className="rounded-lg border border-neutral-700 bg-neutral-800 px-2 py-1 text-[9px] font-bold text-neutral-300">{project?.name || deadline.projectId}</span><span className="flex items-center gap-1 text-[9px] text-neutral-500"><Bookmark size={10} /> {deadline.type}</span></div></div>
-              <div className="flex shrink-0 items-start gap-1"><button type="button" onClick={() => openEdit(deadline)} aria-label={`Editar ${deadline.title}`} className="rounded-lg p-2 text-neutral-600 hover:bg-white/5 hover:text-white"><Edit3 size={13} /></button><button type="button" onClick={() => handleDelete(deadline)} aria-label={`Excluir ${deadline.title}`} className="rounded-lg p-2 text-neutral-600 hover:bg-red-400/10 hover:text-red-400"><Trash2 size={13} /></button></div>
+              <div className="flex shrink-0 items-start gap-1"><button type="button" onClick={() => openEdit(deadline)} aria-label={`Editar ${deadline.title}`} className="rounded-lg p-2.5 text-neutral-600 hover:bg-white/5 hover:text-white"><Edit3 size={14} /></button><button type="button" onClick={() => handleDelete(deadline)} aria-label={`Excluir ${deadline.title}`} className="rounded-lg p-2.5 text-neutral-600 hover:bg-red-400/10 hover:text-red-400"><Trash2 size={14} /></button></div>
             </motion.div>;
           })}
           {!orderedDeadlines.length && <div className="rounded-xl border border-dashed border-neutral-800 py-8 text-center text-xs text-neutral-600">Nenhum marco cadastrado</div>}

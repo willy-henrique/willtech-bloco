@@ -58,7 +58,7 @@ const SnippetManager: React.FC = () => {
         <button 
           onClick={() => { setActionError(null); setIsAdding(!isAdding); }}
           aria-label={isAdding ? 'Fechar formulario de snippet' : 'Adicionar snippet'}
-          className="p-1.5 rounded-lg bg-lime-500/10 text-lime-400 hover:bg-lime-500 hover:text-black transition-all"
+          className="p-2.5 rounded-xl bg-lime-500/10 text-lime-400 hover:bg-lime-500 hover:text-black transition-all"
         >
           <Plus size={16} />
         </button>
@@ -96,24 +96,24 @@ const SnippetManager: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid gap-3 overflow-y-auto pr-1 max-h-[400px]">
+      <div className="grid grid-cols-1 gap-3 overflow-y-auto pr-1 max-h-[400px]">
         {snippets.map((snippet) => (
-          <div key={snippet.id} className="group bg-neutral-900/60 rounded-xl border border-neutral-800 p-4 hover:border-blue-500/30 transition-all">
+          <div key={snippet.id} className="group min-w-0 bg-neutral-900/60 rounded-xl border border-neutral-800 p-4 hover:border-blue-500/30 transition-all">
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2">
                 <Code size={14} className="text-neutral-500" />
                 <h4 className="text-xs font-bold text-neutral-200">{snippet.title}</h4>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => handleCopy(snippet.id, snippet.code)} aria-label={`Copiar ${snippet.title}`} className="text-neutral-600 hover:text-white transition-colors">
-                  {copiedId === snippet.id ? <Check size={14} className="text-lime-500" /> : <Copy size={14} />}
+                <button onClick={() => handleCopy(snippet.id, snippet.code)} aria-label={`Copiar ${snippet.title}`} className="rounded-md p-2 text-neutral-600 hover:text-white transition-colors">
+                  {copiedId === snippet.id ? <Check size={15} className="text-lime-500" /> : <Copy size={15} />}
                 </button>
-                <button onClick={() => handleDelete(snippet)} aria-label={`Excluir ${snippet.title}`} className="text-neutral-700 transition-colors hover:text-red-400">
-                  <Trash2 size={14} />
+                <button onClick={() => handleDelete(snippet)} aria-label={`Excluir ${snippet.title}`} className="rounded-md p-2 text-neutral-700 transition-colors hover:text-red-400">
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
-            {snippet.description && <p className="text-[10px] text-neutral-500 mb-3 italic">{snippet.description}</p>}
+            {snippet.description && <p className="text-[11px] text-neutral-500 mb-3 italic">{snippet.description}</p>}
             <pre className="bg-neutral-950 p-3 rounded-lg text-[11px] font-mono text-blue-300 overflow-x-auto border border-neutral-800">
               <code>{snippet.code}</code>
             </pre>

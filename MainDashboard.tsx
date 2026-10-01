@@ -223,7 +223,7 @@ const MainDashboard: React.FC = () => {
 
     if (isLoading) {
       return (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[0, 1, 2, 3].map((item) => (
             <div key={item} className="h-64 animate-pulse rounded-[22px] border border-white/5 bg-white/[0.025]" />
           ))}
@@ -246,7 +246,7 @@ const MainDashboard: React.FC = () => {
     }
 
     return (
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {items.map((project, index) => (
           <motion.div
             key={project.id}
@@ -543,8 +543,8 @@ const MainDashboard: React.FC = () => {
               <div role="alert" className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-100">
                 <AlertTriangle className="mt-0.5 shrink-0 text-amber-300" size={17} />
                 <p className="min-w-0 flex-1 leading-5">{dataError}</p>
-                <button type="button" onClick={clearDataError} aria-label="Fechar aviso" className="rounded-lg p-1 text-amber-200/60 transition hover:bg-amber-300/10 hover:text-amber-100">
-                  <X size={15} />
+                <button type="button" onClick={clearDataError} aria-label="Fechar aviso" className="rounded-lg p-2 text-amber-200/60 transition hover:bg-amber-300/10 hover:text-amber-100">
+                  <X size={16} />
                 </button>
               </div>
             )}
@@ -554,7 +554,7 @@ const MainDashboard: React.FC = () => {
                   <div className="hero-orb" />
                   <div className="relative z-10 flex flex-col justify-between gap-7 xl:flex-row xl:items-end">
                     <div className="max-w-2xl">
-                      <div className="mb-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
+                      <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.8)]" />
                         {currentDate}
                       </div>
@@ -605,12 +605,12 @@ const MainDashboard: React.FC = () => {
                           <Icon size={16} />
                         </div>
                       </div>
-                      <p className="mt-3 text-[10px] text-neutral-600">{note}</p>
+                      <p className="mt-3 text-[11px] text-neutral-600">{note}</p>
                     </div>
                   ))}
                 </section>
 
-                <div className="grid items-start gap-6 xl:grid-cols-12">
+                <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
                   <section className="xl:col-span-8">
                     <SectionHeading
                       eyebrow="Portfólio"
@@ -633,7 +633,7 @@ const MainDashboard: React.FC = () => {
                     <section className="surface-panel overflow-hidden rounded-[22px] border border-white/[0.07]">
                       <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
                         <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Próximo passo</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-600">Próximo passo</p>
                           <h3 className="mt-1 text-sm font-semibold text-neutral-200">Fila de atenção</h3>
                         </div>
                         <button
@@ -655,15 +655,15 @@ const MainDashboard: React.FC = () => {
                                 type="button"
                                 onClick={() => toggleTask(task.id)}
                                 aria-label="Concluir tarefa"
-                                className="mt-0.5 text-neutral-700 transition hover:text-emerald-300"
+                                className="mt-0.5 rounded-lg p-1.5 text-neutral-700 transition hover:text-emerald-300"
                               >
-                                <CheckCircle2 size={16} />
+                                <CheckCircle2 size={18} />
                               </button>
                               <div className="min-w-0 flex-1">
                                 <p className="line-clamp-2 text-xs leading-5 text-neutral-300">{task.description}</p>
                                 <div className="mt-1.5 flex items-center gap-2">
                                   <span className={`h-1.5 w-1.5 rounded-full ${isCritical ? 'bg-rose-400' : 'bg-amber-300'}`} />
-                                  <span className="truncate text-[9px] font-medium uppercase tracking-[0.12em] text-neutral-600">
+                                  <span className="truncate text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-600">
                                     {project?.name || task.projectId}
                                   </span>
                                 </div>
@@ -780,7 +780,7 @@ const MainDashboard: React.FC = () => {
             {activeView === 'resources' && (
               <section>
                 <PageIntro meta={meta} />
-                <div className="grid items-start gap-5 xl:grid-cols-12">
+                <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
                   <div className="surface-panel rounded-[24px] border border-white/[0.07] p-5 md:p-6 xl:col-span-7">
                     <SnippetManager />
                   </div>
@@ -835,7 +835,7 @@ const SectionHeading: React.FC<{
 }> = ({ eyebrow, title, description, action }) => (
   <div className="mb-4 flex items-end justify-between gap-4">
     <div>
-      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-300/65">{eyebrow}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300/65">{eyebrow}</p>
       <h2 className="mt-1.5 text-lg font-semibold tracking-[-0.025em] text-white">{title}</h2>
       {description && <p className="mt-1 text-xs text-neutral-600">{description}</p>}
     </div>
@@ -845,7 +845,7 @@ const SectionHeading: React.FC<{
 
 const PageIntro: React.FC<{ meta: (typeof VIEW_META)[View] }> = ({ meta }) => (
   <div className="mb-6 md:mb-8">
-    <p className="text-[9px] font-bold uppercase tracking-[0.21em] text-emerald-300/65">{meta.eyebrow}</p>
+    <p className="text-[10px] font-bold uppercase tracking-[0.21em] text-emerald-300/65">{meta.eyebrow}</p>
     <h2 className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-white md:text-[30px]">{meta.title}</h2>
     <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">{meta.description}</p>
   </div>
@@ -867,7 +867,7 @@ const MobileNavButton: React.FC<{
     <div className={`grid h-8 w-11 place-items-center rounded-xl transition ${active ? 'bg-emerald-400/15' : 'bg-transparent'}`}>
       <Icon size={18} strokeWidth={active ? 2.4 : 1.8} />
     </div>
-    <span className="text-[10px] leading-tight tracking-tight truncate">{label}</span>
+    <span className="text-[11px] leading-tight tracking-tight truncate">{label}</span>
   </button>
 );
 
