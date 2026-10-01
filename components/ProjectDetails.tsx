@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Plus, Edit2, Trash2, Lock, DollarSign, FileText, 
   Calendar, AlertCircle, CheckCircle, XCircle, Copy, Eye, EyeOff,
-  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Activity, Settings2 } from 'lucide-react';
+  Globe, Code, User, Mail, Key, Link as LinkIcon, Save, X, Activity, Settings2, Network } from 'lucide-react';
 import { Project, ProjectCredential, ProjectPayment, ProjectNote, ProjectDetail } from '../types';
 import { 
   projectCredentialsService, 
@@ -13,6 +13,7 @@ import {
   projectDetailsService 
 } from '../src/services/firestoreService';
 import EvolucaoProjeto from '../src/features/projects/EvolucaoProjeto';
+import InfraEditor from './InfraEditor';
 
 interface ProjectDetailsProps {
   project: Project;
@@ -27,7 +28,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
   const [notes, setNotes] = useState<ProjectNote[]>([]);
   const [detail, setDetail] = useState<ProjectDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'evolucao' | 'credentials' | 'payments' | 'notes' | 'info'>('evolucao');
+  const [activeTab, setActiveTab] = useState<'evolucao' | 'credentials' | 'payments' | 'notes' | 'info' | 'infra'>('evolucao');
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [isEditingDetail, setIsEditingDetail] = useState(false);
@@ -470,7 +471,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
           { id: 'credentials', label: 'Credenciais', icon: Lock, shortLabel: 'Creds' },
           { id: 'payments', label: 'Pagamentos', icon: DollarSign, shortLabel: 'Pags' },
           { id: 'notes', label: 'Notas', icon: FileText, shortLabel: 'Notas' },
-          { id: 'info', label: 'Informações', icon: Globe, shortLabel: 'Info' }
+          { id: 'info', label: 'Informações', icon: Globe, shortLabel: 'Info' },
+          { id: 'infra', label: 'Infra & Contas', icon: Network, shortLabel: 'Infra' }
         ].map(tab => {
           const Icon = tab.icon;
           return (
@@ -1400,6 +1402,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack, onConf
             </div>
           </div>
         )}
+
+        {activeTab === 'infra' && <InfraEditor project={project} />}
       </div>
     </div>
   );

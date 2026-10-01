@@ -9,6 +9,48 @@ export interface EventoDeCommit {
 // ProjectId agora é uma string para permitir projetos dinâmicos
 export type ProjectId = string;
 
+// ---- Hub de Infraestrutura: contas e endpoints por plataforma ----
+
+export type PlatformName =
+  | 'github'
+  | 'vercel'
+  | 'render'
+  | 'firebase'
+  | 'supabase'
+  | 'railway'
+  | 'netlify'
+  | 'postgres'
+  | 'local'
+  | 'other';
+
+export const PLATFORMS: PlatformName[] = [
+  'github', 'vercel', 'render', 'firebase', 'supabase',
+  'railway', 'netlify', 'postgres', 'local', 'other',
+];
+
+/** Conta de uma plataforma usada pelo projeto (inclui o email de login). */
+export interface ProjectPlatform {
+  id: string; // id estável para edição
+  platform: PlatformName;
+  email: string; // email usado no login dessa plataforma
+  accountName?: string; // conta/org/slug (ex: 'willy-henrique', 'Mavo Tech')
+  projectName?: string; // nome do app/serviço na plataforma (ex: 'mavotalk-maisvarejo-api')
+  consoleUrl?: string; // link direto do painel/console
+  notes?: string;
+  updatedAt?: number;
+}
+
+/** Endpoint conhecido do projeto (produção, webhook, API...). */
+export interface ProjectEndpoint {
+  id: string;
+  label: string; // ex: 'API de produção', 'Webhook Mavo AI'
+  url: string;
+  method?: string; // GET, POST...
+  auth?: string; // ex: 'Bearer — chave no Bitwarden'
+  notes?: string;
+  updatedAt?: number;
+}
+
 export enum TaskPriority {
   CRITICAL = 'Critical',
   URGENT = 'Urgent',
@@ -47,6 +89,11 @@ export interface Project {
   aliases?: string[]; // Apelidos que voce usa ao falar do projeto (ex: ["talk", "mavotalk"])
   vocab?: string[];   // Vocabulario do dominio, para reconhecer o projeto sem citar o nome
   repo?: string;     // "owner/repo" no GitHub, usado pelo coletor
+  // ---- Hub de Infraestrutura ----
+  ownerEmail?: string;           // email principal/administrativo do projeto
+  deployUrl?: string;            // url de produção (atalho)
+  platforms?: ProjectPlatform[]; // contas por plataforma (GitHub, Vercel, Render...)
+  endpoints?: ProjectEndpoint[]; // endpoints conhecidos do projeto
   // Atividade derivada dos commits. Escrita pela importacao; na Fase 3
   // o coletor assume. Nao editar a mao -- e sobrescrita a cada sync.
   ultimoCommit?: string;   // YYYY-MM-DD

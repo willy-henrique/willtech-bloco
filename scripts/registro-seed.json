@@ -1,0 +1,508 @@
+{
+  "projetos": [
+    {
+      "id": "mavotalk-maisvarejo",
+      "dados": {
+        "name": "Mavo Talk Mais Varejo",
+        "type": "Software",
+        "status": "Active",
+        "progress": 90,
+        "color": "#52d18a",
+        "stack": "Next.js + Supabase + Prisma + PostgreSQL + Tailwind + Baileys",
+        "repo": "willy-henrique/mavotalk-maisvarejo",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://mavotalk-maisvarejo-web.onrender.com",
+        "aliases": ["maisvarejo", "mavotalk", "mavotalk maisvarejo", "mavotalk-maisvarejo"],
+        "vocab": ["whatsapp", "atendimento", "fila", "pareamento", "sessao", "atendente", "conversa", "assinatura"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "mavotalk-maisvarejo", "consoleUrl": "https://github.com/willy-henrique/mavotalk-maisvarejo" },
+          { "id": "plf_render_api", "platform": "render", "email": "cardosorocha@gmail.com", "accountName": "Mavo Tech (org)", "projectName": "mavotalk-maisvarejo-api", "consoleUrl": "https://dashboard.render.com", "notes": "Org cloud da Mavo sob cardosorocha@gmail.com (Vitor lidera). Titularidade: verificar." },
+          { "id": "plf_render_web", "platform": "render", "email": "cardosorocha@gmail.com", "accountName": "Mavo Tech (org)", "projectName": "mavotalk-maisvarejo-web", "consoleUrl": "https://dashboard.render.com", "notes": "Verificar titular." },
+          { "id": "plf_supabase", "platform": "supabase", "email": "willydev01@gmail.com", "accountName": "Mavo Talk Mais Varejo", "projectName": "azqxothepfxacafdmjoy", "consoleUrl": "https://supabase.com/dashboard/project/azqxothepfxacafdmjoy", "notes": "us-east-2. Admin willydev01@gmail.com." },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "maisvarejo-39c6d", "consoleUrl": "https://console.firebase.google.com/project/maisvarejo-39c6d" }
+        ],
+        "endpoints": [
+          { "id": "ept_api", "label": "API de produção", "url": "https://mavotalk-maisvarejo-api.onrender.com", "method": "POST", "auth": "Webhook queue — ver lib/queue-webhook-client.ts", "notes": "Verificar URL exata no dashboard Render." },
+          { "id": "ept_web", "label": "Web app", "url": "https://mavotalk-maisvarejo-web.onrender.com", "method": "GET" },
+          { "id": "ept_gestao", "label": "Mavo Gestão (demandas)", "url": "https://bloco-maisvarejo.vercel.app", "method": "GET", "notes": "Central de demandas da equipe." }
+        ]
+      }
+    },
+    {
+      "id": "mavo-gerenciamento",
+      "dados": {
+        "name": "Mavo Gerenciamento",
+        "type": "Software",
+        "status": "Active",
+        "progress": 70,
+        "color": "#34d399",
+        "stack": "Next.js 16 + React 19 (BFF de métricas do Mavo Talk)",
+        "repo": "willy-henrique/mavo-metricas",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://bloco-maisvarejo.vercel.app",
+        "aliases": ["bloco-maisvarejo", "gestao", "gerenciamento", "metricas", "mavo metricas"],
+        "vocab": ["metricas", "funil", "atendimento", "equipe", "demanda", "ticket"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "mavo-metricas", "consoleUrl": "https://github.com/willy-henrique/mavo-metricas" },
+          { "id": "plf_vercel", "platform": "vercel", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "bloco-maisvarejo", "consoleUrl": "https://vercel.com/willy-henrique/bloco-maisvarejo", "notes": "Front da gestão em willy-henrique/bloco-maisvarejo." }
+        ],
+        "endpoints": [
+          { "id": "ept_gestao", "label": "Central Mavo Gestão", "url": "https://bloco-maisvarejo.vercel.app", "method": "GET" },
+          { "id": "ept_metrics", "label": "BFF métricas", "url": "https://bloco-maisvarejo.vercel.app/api/metrics/v1", "method": "GET", "notes": "Consome a API do Mavo Talk." }
+        ]
+      }
+    },
+    {
+      "id": "mavo-talk",
+      "dados": {
+        "name": "Mavo Talk (Soares)",
+        "type": "Software",
+        "status": "Active",
+        "progress": 60,
+        "color": "#2dd4bf",
+        "stack": "Next.js + Supabase + Baileys (onboarding Soares)",
+        "repo": "willy-henrique/willtalk",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["willtalk", "soares", "talk"],
+        "vocab": ["firebird", "query api", "produto", "preco", "onboarding"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "willtalk", "consoleUrl": "https://github.com/willy-henrique/willtalk" },
+          { "id": "plf_local", "platform": "local", "email": "willydev01@gmail.com", "projectName": "C:\\willydev\\willtalk", "notes": "508 testes passando. Rotas /api/product-query/* e tela /products prontas." }
+        ],
+        "endpoints": [
+          { "id": "ept_query_hml", "label": "Mavo Query API (HML)", "url": "https://mavo-query-api-hml.tail4a0af0.ts.net", "method": "GET", "auth": "Bearer token HML (tenant hml-demo-mavo)", "notes": "100.74.187.113 na tailnet. Query-only. Aguarda Firebird do Soares p/ onboarding." }
+        ]
+      }
+    },
+    {
+      "id": "mavo-ai",
+      "dados": {
+        "name": "Mavo AI",
+        "type": "Software",
+        "status": "Active",
+        "progress": 75,
+        "color": "#8b5cf6",
+        "stack": "Agente IA de atendimento (produção com MTalk)",
+        "repo": "willy-henrique/mavoai",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["chat-inteligente", "mavoai", "ia"],
+        "vocab": ["resolucao autonoma", "fallback", "confianca", "escalar", "humano"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "mavoai", "consoleUrl": "https://github.com/willy-henrique/mavoai" },
+          { "id": "plf_local", "platform": "local", "email": "willydev01@gmail.com", "projectName": "C:\\willydev\\chat-inteligente", "notes": "Integrado ao Mavo Talk via fila de webhook (lib/queue-webhook-client.ts)." }
+        ],
+        "endpoints": [],
+        "notes_inline": "Produção: roda integrado ao MTalk; hospedagem de produção do Mavo.AI — verificar."
+      }
+    },
+    {
+      "id": "willtech-bloco",
+      "dados": {
+        "name": "WillTech Bloco",
+        "type": "Software",
+        "status": "Active",
+        "progress": 80,
+        "color": "#a3e635",
+        "stack": "Vite + React 19 + TypeScript + Firebase + Vercel Functions",
+        "repo": "willy-henrique/willtech-bloco",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://willtech-bloco.vercel.app",
+        "aliases": ["bloco", "painel", "willtech bloco", "dashboard"],
+        "vocab": ["anotacao", "tarefa", "cofre", "financas", "hub", "integracao"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "willtech-bloco", "consoleUrl": "https://github.com/willy-henrique/willtech-bloco" },
+          { "id": "plf_vercel", "platform": "vercel", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "willtech-bloco", "consoleUrl": "https://vercel.com/willy-henrique/willtech-bloco" },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "willtech-a9bb6", "consoleUrl": "https://console.firebase.google.com/project/willtech-a9bb6" }
+        ],
+        "endpoints": [
+          { "id": "ept_painel", "label": "Painel", "url": "https://willtech-bloco.vercel.app", "method": "GET" },
+          { "id": "ept_ingest", "label": "Ingestão (recebe dados)", "url": "https://willtech-bloco.vercel.app/api/ingest", "method": "POST", "auth": "Bearer <chave gerada no painel>", "notes": "Endpoint central de integração de todos os projetos." }
+        ]
+      }
+    },
+    {
+      "id": "barber-leonico",
+      "dados": {
+        "name": "AgendeBarber (barber-leonico)",
+        "type": "Software",
+        "status": "Active",
+        "progress": 85,
+        "color": "#f59e0b",
+        "stack": "React 19 + Vite + Firebase + Vercel",
+        "repo": "willy-henrique/barber-leonico",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://leonicobarbearia.com.br",
+        "aliases": ["agendebarber", "leonico", "barbearia", "barbeiro"],
+        "vocab": ["agendamento", "cliente", "barbeiro", "horario"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "barber-leonico", "consoleUrl": "https://github.com/willy-henrique/barber-leonico" },
+          { "id": "plf_vercel", "platform": "vercel", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "barber-leonico", "consoleUrl": "https://vercel.com/willy-henrique/barber-leonico" },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "barberagenda-77a3a", "consoleUrl": "https://console.firebase.google.com/project/barberagenda-77a3a" }
+        ],
+        "endpoints": [
+          { "id": "ept_site", "label": "Produção", "url": "https://leonicobarbearia.com.br", "method": "GET" }
+        ]
+      }
+    },
+    {
+      "id": "willagender",
+      "dados": {
+        "name": "WillAgender",
+        "type": "Software",
+        "status": "Active",
+        "progress": 55,
+        "color": "#ec4899",
+        "stack": "React 19 + Vite + Tailwind + Firebase (Spark) + Vercel — multi-moeda USD/EUR/BRL",
+        "repo": "willy-henrique/WillAgender",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://will-agender-vert.vercel.app",
+        "aliases": ["agender", "will agender"],
+        "vocab": ["agendamento", "saas", "barbearia", "moeda", "assinatura"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "WillAgender", "consoleUrl": "https://github.com/willy-henrique/WillAgender" },
+          { "id": "plf_vercel", "platform": "vercel", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "will-agender-vert", "consoleUrl": "https://vercel.com/willy-henrique/will-agender-vert" },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "willagender", "consoleUrl": "https://console.firebase.google.com/project/willagender", "notes": "Plano Spark gratuito. Admin admin@willagender.com." }
+        ],
+        "endpoints": [
+          { "id": "ept_app", "label": "App", "url": "https://will-agender-vert.vercel.app", "method": "GET" }
+        ]
+      }
+    },
+    {
+      "id": "pesque-pague",
+      "dados": {
+        "name": "Pesque-Pague Confraria",
+        "type": "Software",
+        "status": "Active",
+        "progress": 95,
+        "color": "#60a5fa",
+        "stack": "Next.js 16 + React 19 + Firebase 13",
+        "repo": "willy-henrique/pesque-pague",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://pesque-pague.vercel.app",
+        "aliases": ["pesqueiro", "confraria", "pesque pague", "comanda"],
+        "vocab": ["quiosque", "kds", "comanda", "dre", "sangria", "repassagem"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "pesque-pague", "consoleUrl": "https://github.com/willy-henrique/pesque-pague" },
+          { "id": "plf_vercel", "platform": "vercel", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "pesque-pague", "consoleUrl": "https://vercel.com/willy-henrique/pesque-pague" },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "pesqueiro-a75a2", "consoleUrl": "https://console.firebase.google.com/project/pesqueiro-a75a2" }
+        ],
+        "endpoints": [
+          { "id": "ept_app", "label": "Sistema", "url": "https://pesque-pague.vercel.app", "method": "GET", "notes": "30 quiosques, KDS, financeiro, pré-conta térmica 80mm." }
+        ]
+      }
+    },
+    {
+      "id": "smartstock",
+      "dados": {
+        "name": "SmartStock",
+        "type": "Software",
+        "status": "Active",
+        "progress": 65,
+        "color": "#22d3ee",
+        "stack": "Next.js 16 + Flutter + Spring Boot (Java 21) + PostgreSQL 16",
+        "repo": "costavinicius00005-prog/PROJ-SMARTSTOCK",
+        "ownerEmail": "willydev01@gmail.com",
+        "deployUrl": "https://geophytic-condemningly-drema.ngrok-free.dev",
+        "aliases": ["smartstock", "estoque", "erp faculdade"],
+        "vocab": ["estoque", "ngrok", "spring", "flutter", "flyway"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "costavinicius00005-prog", "projectName": "PROJ-SMARTSTOCK", "consoleUrl": "https://github.com/costavinicius00005-prog/PROJ-SMARTSTOCK", "notes": "Repo do colega (conta costavinicius00005-prog)." },
+          { "id": "plf_local", "platform": "local", "email": "willydev01@gmail.com", "projectName": "/home/willy/willydev/smartstock/smartstock-completo", "notes": "Projeto da faculdade. Também em C:\\willydev\\smartstock." }
+        ],
+        "endpoints": [
+          { "id": "ept_web", "label": "Web (ngrok)", "url": "https://geophytic-condemningly-drema.ngrok-free.dev", "method": "GET", "notes": "Next.js :3000 + Flutter web em /aplicativo." },
+          { "id": "ept_api", "label": "API Spring", "url": "https://geophytic-condemningly-drema.ngrok-free.dev/api", "method": "GET", "notes": "Spring :8080, Flyway V19, Postgres 16." }
+        ]
+      }
+    },
+    {
+      "id": "willtreino",
+      "dados": {
+        "name": "WillTreino",
+        "type": "Software",
+        "status": "Active",
+        "progress": 70,
+        "color": "#4ade80",
+        "stack": "Next.js 16 + React 19 + Firebase Admin v14 + Groq AI (Qwen 3.8 27B)",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["appacademia", "treino", "academia"],
+        "vocab": ["treino", "aluno", "firebase admin", "groq", "scheduledtask"],
+        "platforms": [
+          { "id": "plf_local", "platform": "local", "email": "willydev01@gmail.com", "projectName": "C:\\willydev\\appACADEMIA", "notes": "ScheduledTask 'NextWillTreino' em :3000. 352 testes verdes. Admin ID WT-GQ3B-A5CL." }
+        ],
+        "endpoints": [
+          { "id": "ept_local", "label": "App local", "url": "http://localhost:3000", "method": "GET", "notes": "Sobe pela ScheduledTask NextWillTreino." }
+        ]
+      }
+    },
+    {
+      "id": "britech",
+      "dados": {
+        "name": "BRITECH (TikTok)",
+        "type": "Conteúdo",
+        "status": "Active",
+        "progress": 40,
+        "color": "#f472b6",
+        "stack": "Python (moviepy/ffmpeg) — vídeos verticais TikTok",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["britech", "tiktok", "videos"],
+        "vocab": ["video", "tiktok", "afiliado", "live", "pipeline"],
+        "platforms": [
+          { "id": "plf_local", "platform": "local", "email": "willydev01@gmail.com", "projectName": "/home/willy/proflyer", "notes": "Pipelines make_leva1..4 + render_engine.py, assets Pexels/Mixkit." }
+        ],
+        "endpoints": [
+          { "id": "ept_tiktok", "label": "Perfil TikTok", "url": "https://www.tiktok.com/@britech", "method": "GET", "notes": "Meta: 2.000 seguidores p/ live + afiliado TikTok Shop. Login do TikTok: verificar." }
+        ]
+      }
+    },
+    {
+      "id": "willtech-meta-ads",
+      "dados": {
+        "name": "WillTech Meta Ads",
+        "type": "Marketing",
+        "status": "Active",
+        "progress": 30,
+        "color": "#818cf8",
+        "stack": "Meta Business Suite — campanhas de conversas WhatsApp",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["meta ads", "business manager", "anuncios", "campanhas"],
+        "vocab": ["campanha", "conversa", "whatsapp", "bm", "ads"],
+        "platforms": [
+          { "id": "plf_meta", "platform": "other", "email": "", "accountName": "BM WillTech", "projectName": "191571803524650", "consoleUrl": "https://business.facebook.com", "notes": "Conta de anúncios 628003772436592. E-mail do Facebook/BM: verificar." }
+        ],
+        "endpoints": [
+          { "id": "ept_bm", "label": "Business Manager", "url": "https://business.facebook.com", "method": "GET", "notes": "Foco: barbearias Goiânia, conversas WhatsApp +55 62 9169-6709." }
+        ]
+      }
+    },
+    {
+      "id": "willtech-erp",
+      "dados": {
+        "name": "WillTech ERP",
+        "type": "Software",
+        "status": "Active",
+        "progress": 50,
+        "color": "#fb923c",
+        "stack": "ERP (Next.js/Tailwind/Firebase/Postgres)",
+        "repo": "willy-henrique/WillTech-ERP",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["erp", "jeferson"],
+        "vocab": ["erp", "sacaria", "calculadora", "vendedor", "cliente"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "WillTech-ERP", "consoleUrl": "https://github.com/willy-henrique/WillTech-ERP" }
+        ],
+        "endpoints": [],
+        "notes_inline": "Cliente Jeferson (contratos em Downloads). Hospedagem de produção: verificar."
+      }
+    },
+    {
+      "id": "escola-estrelinha",
+      "dados": {
+        "name": "Escola Estrelinha",
+        "type": "Software",
+        "status": "Maintenance",
+        "progress": 80,
+        "color": "#facc15",
+        "stack": "Next.js + Firebase",
+        "repo": "willy-henrique/escola-estrelinha",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["escola", "estrelinha"],
+        "vocab": ["escola", "aluno", "professor"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "escola-estrelinha", "consoleUrl": "https://github.com/willy-henrique/escola-estrelinha" },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "escola-estrelinha", "consoleUrl": "https://console.firebase.google.com/project/escola-estrelinha" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "aquiresolve-app",
+      "dados": {
+        "name": "AquiResolve App",
+        "type": "Software",
+        "status": "Active",
+        "progress": 60,
+        "color": "#38bdf8",
+        "stack": "App (repo do cliente Delta657)",
+        "repo": "Delta657/Aqui_Resolve",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["aquiresolve", "aqui resolve"],
+        "vocab": ["servico", "prestador", "pedido"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "Delta657", "projectName": "Aqui_Resolve", "consoleUrl": "https://github.com/Delta657/Aqui_Resolve", "notes": "Repo do cliente (Delta657)." },
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "aplicativoservico-143c2", "consoleUrl": "https://console.firebase.google.com/project/aplicativoservico-143c2" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "aquiresolve-site",
+      "dados": {
+        "name": "AquiResolve Site",
+        "type": "Software",
+        "status": "Maintenance",
+        "progress": 80,
+        "color": "#7dd3fc",
+        "stack": "Site institucional",
+        "repo": "willy-henrique/AquiResolve",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["aquiresolve site"],
+        "vocab": ["site", "institucional"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "AquiResolve", "consoleUrl": "https://github.com/willy-henrique/AquiResolve" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "aquiresolve-painel",
+      "dados": {
+        "name": "AquiResolve Painel",
+        "type": "Software",
+        "status": "Maintenance",
+        "progress": 60,
+        "color": "#93c5fd",
+        "stack": "Painel administrativo",
+        "repo": "willy-henrique/dashboard_admin",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["aquiresolve painel", "dashboard admin"],
+        "vocab": ["painel", "admin", "relatorio"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "dashboard_admin", "consoleUrl": "https://github.com/willy-henrique/dashboard_admin" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "portfolio-willy",
+      "dados": {
+        "name": "Portfólio Willy",
+        "type": "Site",
+        "status": "Maintenance",
+        "progress": 70,
+        "color": "#c4b5fd",
+        "stack": "Site pessoal / portfólio",
+        "repo": "willy-henrique/lang-page-willy",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["portfolio", "lang page"],
+        "vocab": ["portfolio", "curriculo"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "lang-page-willy", "consoleUrl": "https://github.com/willy-henrique/lang-page-willy" }
+        ],
+        "endpoints": [],
+        "notes_inline": "URL pública: verificar se está publicado."
+      }
+    },
+    {
+      "id": "agrooliveira",
+      "dados": {
+        "name": "AgroOliveira",
+        "type": "Software",
+        "status": "Maintenance",
+        "progress": 50,
+        "color": "#bef264",
+        "stack": "Gestão agrícola (Firebase agrorafia-bc484)",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["agro", "oliveira"],
+        "vocab": ["agro", "fazenda", "colheita"],
+        "platforms": [
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "agrorafia-bc484", "consoleUrl": "https://console.firebase.google.com/project/agrorafia-bc484", "notes": "Repositório GitHub: verificar (catalogo não lista repo)." }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "life-pro",
+      "dados": {
+        "name": "life-pro",
+        "type": "Software",
+        "status": "Legacy",
+        "progress": 30,
+        "color": "#94a3b8",
+        "stack": "Lembretes / aniversários (verificar)",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["life pro"],
+        "vocab": ["lembrete", "aniversario"],
+        "platforms": [
+          { "id": "plf_firebase", "platform": "firebase", "email": "willydev01@gmail.com", "projectName": "lembrete-aniversario", "consoleUrl": "https://console.firebase.google.com/project/lembrete-aniversario", "notes": "Vínculo life-pro ↔ lembrete-aniversario: verificar." }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "projeto-pitdog",
+      "dados": {
+        "name": "projeto-pitdog",
+        "type": "Software",
+        "status": "Legacy",
+        "progress": 40,
+        "color": "#64748b",
+        "stack": "Pet shop / hotdog (verificar escopo)",
+        "repo": "willy-henrique/projeto-pitdog",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["pitdog"],
+        "vocab": ["pet", "cachorro"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "projeto-pitdog", "consoleUrl": "https://github.com/willy-henrique/projeto-pitdog" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "grdedetizacao",
+      "dados": {
+        "name": "GRDEDETIZAÇÃO",
+        "type": "Site",
+        "status": "Legacy",
+        "progress": 80,
+        "color": "#475569",
+        "stack": "Site institucional dedetizadora",
+        "repo": "willy-henrique/dedetiza-o",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["dedetizacao", "dedetiza"],
+        "vocab": ["dedetizacao", "controle de pragas"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "dedetiza-o", "consoleUrl": "https://github.com/willy-henrique/dedetiza-o" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "exclusao-conta",
+      "dados": {
+        "name": "Exclusão de Conta",
+        "type": "Software",
+        "status": "Legacy",
+        "progress": 100,
+        "color": "#334155",
+        "stack": "Fluxo LGPD de exclusão de conta",
+        "repo": "willy-henrique/exclusao-conta",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["exclusao de conta", "lgpd"],
+        "vocab": ["lgpd", "exclusao"],
+        "platforms": [
+          { "id": "plf_github", "platform": "github", "email": "willydev01@gmail.com", "accountName": "willy-henrique", "projectName": "exclusao-conta", "consoleUrl": "https://github.com/willy-henrique/exclusao-conta" }
+        ],
+        "endpoints": []
+      }
+    },
+    {
+      "id": "pet",
+      "dados": {
+        "name": "pet",
+        "type": "Software",
+        "status": "Legacy",
+        "progress": 20,
+        "color": "#1e293b",
+        "stack": "Projeto antigo (verificar escopo)",
+        "ownerEmail": "willydev01@gmail.com",
+        "aliases": ["pet projeto"],
+        "vocab": ["pet"],
+        "platforms": [],
+        "endpoints": [],
+        "notes_inline": "Sem repo no catálogo. Verificar se ainda existe."
+      }
+    }
+  ]
+}

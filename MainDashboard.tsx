@@ -16,6 +16,8 @@ import {
   LockKeyhole,
   LogOut,
   Menu,
+  Network,
+  PlugZap,
   Plus,
   Search,
   ShieldCheck,
@@ -40,9 +42,11 @@ import SnippetManager from './components/SnippetManager';
 import DeadlineCalendar from './components/DeadlineCalendar';
 import Vault from './components/Vault';
 import FinanceHub from './components/FinanceHub';
+import InfraHub from './components/InfraHub';
+import IntegrationsPanel from './components/IntegrationsPanel';
 import { Project, TaskPriority, type ProjectPayment, type ProjectNote } from './types';
 
-type View = 'overview' | 'projects' | 'notes' | 'finance' | 'tasks' | 'vault' | 'resources';
+type View = 'overview' | 'projects' | 'hub' | 'notes' | 'finance' | 'tasks' | 'vault' | 'integrations' | 'resources';
 
 const VIEW_META: Record<View, { title: string; eyebrow: string; description: string }> = {
   overview: {
@@ -54,6 +58,16 @@ const VIEW_META: Record<View, { title: string; eyebrow: string; description: str
     title: 'Projetos',
     eyebrow: 'Portfólio',
     description: 'Acompanhe o ritmo e entre rapidamente no contexto de cada produto.',
+  },
+  hub: {
+    title: 'Hub de Infraestrutura',
+    eyebrow: 'Contas, e-mails e endpoints',
+    description: 'Todos os projetos com suas plataformas, e-mails de login e endpoints em um só lugar.',
+  },
+  integrations: {
+    title: 'Integrações',
+    eyebrow: 'Endpoint de ingestão',
+    description: 'Receba dados de projetos por HTTP: chave de API, exemplos e status do endpoint.',
   },
   notes: {
     title: 'Anotações',
@@ -85,6 +99,7 @@ const VIEW_META: Record<View, { title: string; eyebrow: string; description: str
 const PRIMARY_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
   { view: 'overview', label: 'Visão geral', icon: Gauge },
   { view: 'projects', label: 'Projetos', icon: FolderKanban },
+  { view: 'hub', label: 'Hub', icon: Network },
   { view: 'notes', label: 'Anotações', icon: FileText },
   { view: 'finance', label: 'Finanças', icon: WalletCards },
   { view: 'tasks', label: 'Prioridades', icon: ListTodo },
@@ -92,6 +107,7 @@ const PRIMARY_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
 
 const WORKSPACE_NAV: Array<{ view: View; label: string; icon: typeof Gauge }> = [
   { view: 'vault', label: 'Cofre', icon: LockKeyhole },
+  { view: 'integrations', label: 'Integrações', icon: PlugZap },
   { view: 'resources', label: 'Base técnica', icon: Code2 },
 ];
 
@@ -749,6 +765,18 @@ const MainDashboard: React.FC = () => {
               </section>
             )}
 
+            {activeView === 'hub' && (
+              <section>
+                <InfraHub onOpenProject={(id) => setSelectedProjectId(id)} />
+              </section>
+            )}
+
+            {activeView === 'integrations' && (
+              <section>
+                <IntegrationsPanel />
+              </section>
+            )}
+
             {activeView === 'resources' && (
               <section>
                 <PageIntro meta={meta} />
@@ -768,6 +796,7 @@ const MainDashboard: React.FC = () => {
         <nav className="mobile-bottom-nav fixed inset-x-3 bottom-3 z-30 flex items-center justify-around rounded-[22px] border border-white/[0.1] bg-[#0d100f]/95 px-2 py-2 shadow-[0_15px_35px_rgba(0,0,0,0.5)] backdrop-blur-2xl lg:hidden">
           <MobileNavButton active={activeView === 'overview'} label="Início" onClick={() => navigateTo('overview')} icon={Gauge} />
           <MobileNavButton active={activeView === 'projects'} label="Projetos" onClick={() => navigateTo('projects')} icon={FolderKanban} />
+          <MobileNavButton active={activeView === 'hub'} label="Hub" onClick={() => navigateTo('hub')} icon={Network} />
           <button
             type="button"
             onClick={() => setIsCaptureOpen(true)}

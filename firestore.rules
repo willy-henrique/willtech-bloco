@@ -24,6 +24,9 @@ service cloud.firestore {
     match /project_details/{docId}     { allow read, write: if isOwner(); }
     match /deadlines/{docId}           { allow read, write: if isOwner(); }
 
+    // ---- Configuracoes do painel (chave de ingestao etc.): so o dono ----
+    match /system/{docId}              { allow read, write: if isOwner(); }
+
     // ---- Colecoes de maquina ----
     // O dono le no painel; nenhum cliente escreve.
     // O coletor e o bot usam Admin SDK, que ignora rules.

@@ -812,3 +812,24 @@ export const projectDetailsService = {
     }
   }
 };
+
+// ==================== SYSTEM (configurações do painel) ====================
+
+export const systemService = {
+  /** Configuração de integração (chave de API do endpoint de ingestão). */
+  async getIngestConfig(): Promise<{ apiKey: string; updatedAt?: number } | null> {
+    const snap = await getDoc(doc(db, 'system', 'ingest'));
+    if (!snap.exists()) return null;
+    const dados = snap.data() as { apiKey?: string; updatedAt?: number } | undefined;
+    return dados?.apiKey ? { apiKey: dados.apiKey, updatedAt: dados.updatedAt } : null;
+  },
+
+  /** Gera uma nova chave de API e a grava em system/ingest (o servidor lê a mesma doc). */
+  async rotateIngestKey(): Promise<string> {
+    const bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    const chave = 'wtk_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    await setDoc(doc(db, 'system', 'ingest'), { apiKey: chave, updatedAt: Date.now() }, { merge: true });
+    return chave;
+  }
+};

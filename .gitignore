@@ -23,6 +23,9 @@ dist-ssr
 firebase-adminsdk-*.json
 serviceAccountKey.json
 
+# Chaves locais de serviço (seed/integrações) — nunca versionar
+.keys/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
