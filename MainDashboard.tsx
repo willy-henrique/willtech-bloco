@@ -382,7 +382,7 @@ const MainDashboard: React.FC = () => {
                   <Icon size={17} strokeWidth={activeView === view ? 2.3 : 1.8} />
                   <span>{label}</span>
                   {view === 'tasks' && openTasks.length > 0 && (
-                    <span className="ml-auto rounded-md bg-white/[0.055] px-1.5 py-0.5 text-[10px] tabular-nums text-neutral-500">
+                    <span aria-hidden="true" className="ml-auto rounded-md bg-white/[0.055] px-1.5 py-0.5 text-[10px] tabular-nums text-neutral-500">
                       {openTasks.length}
                     </span>
                   )}
