@@ -13,13 +13,14 @@
  *   a chave gerada no painel (Firestore: system/ingest.apiKey).
  *
  * GET /api/ingest — status + documentação resumida (sem autenticação).
+ *
+ * O firebase-admin é carregado de forma preguiçosa: qualquer falha de
+ * carregamento vira um JSON de erro legível, em vez de uma invocação
+ * opaca (FUNCTION_INVOCATION_FAILED) sem diagnóstico.
  */
-import { cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import type { Firestore } from 'firebase-admin/firestore';
 import { createHash, timingSafeEqual } from 'node:crypto';
-import type { IngestAction, PayloadLimpo } from './ingest-logic';
-import { ACOES, parseIngestRequest } from './ingest-logic';
+import type { IngestAction, PayloadLimpo } from './ingest-logic.ts';
+import { ACOES, parseIngestRequest } from './ingest-logic.ts';
 
 interface Req {
   method?: string;
@@ -33,19 +34,34 @@ interface Res {
   setHeader(nome: string, valor: string): Res | void;
 }
 
-function iniciarBanco(): Firestore | null {
+type Admin = {
+  app: typeof import('firebase-admin/app');
+  firestore: typeof import('firebase-admin/firestore');
+  db: import('firebase-admin/firestore').Firestore;
+};
+
+let admin: Admin | null | 'falhou' = null;
+
+async function carregarAdmin(): Promise<Admin | null> {
+  if (admin === 'falhou') return null;
+  if (admin) return admin;
   try {
-    const app = getApps().length
-      ? getApp()
+    const app = await import('firebase-admin/app');
+    const firestore = await import('firebase-admin/firestore');
+    const bruto = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const apps = app.getApps();
+    const instancia = apps.length
+      ? apps[0]
       : (() => {
-          const bruto = process.env.FIREBASE_SERVICE_ACCOUNT;
-          if (!bruto) return null;
+          if (!bruto) throw new Error('FIREBASE_SERVICE_ACCOUNT ausente');
           const conta = JSON.parse(bruto);
-          return initializeApp({ credential: cert(conta) }, 'willtech-bloco-ingest');
+          return app.initializeApp({ credential: app.cert(conta) }, 'willtech-bloco-ingest');
         })();
-    return app ? getFirestore(app) : null;
+    admin = { app, firestore, db: firestore.getFirestore(instancia) };
+    return admin;
   } catch (erro) {
-    console.error('Falha ao iniciar o Admin SDK:', erro);
+    admin = 'falhou';
+    console.error('Falha ao carregar o Admin SDK:', erro);
     return null;
   }
 }
@@ -64,7 +80,7 @@ function chavesIguais(enviada: string, esperada: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-async function chaveEsperada(db: Firestore): Promise<string | null> {
+async function chaveEsperada(db: Admin['db']): Promise<string | null> {
   if (process.env.INGEST_API_KEY) return process.env.INGEST_API_KEY;
   try {
     const snap = await db.collection('system').doc('ingest').get();
@@ -75,10 +91,10 @@ async function chaveEsperada(db: Firestore): Promise<string | null> {
   }
 }
 
-async function chaveConfigurada(db: Firestore | null): Promise<boolean> {
-  if (!db) return false;
+async function chaveConfigurada(adminAtivo: Admin | null): Promise<boolean> {
+  if (!adminAtivo) return false;
   if (process.env.INGEST_API_KEY) return true;
-  return Boolean(await chaveEsperada(db));
+  return Boolean(await chaveEsperada(adminAtivo.db));
 }
 
 /** id de documento estável e legível para projetos novos. */
@@ -94,10 +110,11 @@ function slugDoNome(nome: string): string {
 }
 
 async function executarAcao(
-  db: Firestore,
+  db: Admin['db'],
   action: IngestAction,
   data: PayloadLimpo,
 ): Promise<Record<string, unknown>> {
+  const agora = () => new Date();
   switch (action) {
     case 'upsert_project': {
       const projetos = db.collection('projects');
@@ -107,19 +124,16 @@ async function executarAcao(
       } else if (typeof data.repo === 'string' && data.repo) {
         const porRepo = await projetos.where('repo', '==', data.repo).limit(1).get();
         if (!porRepo.empty) ref = porRepo.docs[0].ref;
-      }
-      if (!ref.id || ref.id.length > 90) {
-        const porNome = await projetos
-          .where('name', '==', data.name as string)
-          .limit(1)
-          .get();
-        ref = porNome.empty ? projetos.doc(slugDoNome(data.name as string)) : porNome.docs[0].ref;
+        else {
+          const porNome = await projetos.where('name', '==', data.name as string).limit(1).get();
+          ref = porNome.empty ? projetos.doc(slugDoNome(data.name as string)) : porNome.docs[0].ref;
+        }
       }
       const campos = { ...data };
       delete campos.id;
       const existia = (await ref.get()).exists;
       await ref.set(
-        { ...campos, ...(existia ? {} : { createdAt: Timestamp.now() }), updatedAt: Timestamp.now() },
+        { ...campos, updatedAt: agora(), ...(existia ? {} : { createdAt: agora() }) },
         { merge: true },
       );
       return { action, projectId: ref.id, criado: !existia };
@@ -127,9 +141,10 @@ async function executarAcao(
 
     case 'upsert_platform': {
       const ref = db.collection('projects').doc(data.projectId as string);
-      if (!(await ref.get()).exists) return { action, erro: 'Projeto não encontrado.' };
+      const snap = await ref.get();
+      if (!snap.exists) return { action, erro: 'Projeto não encontrado.' };
       const nova = data.plataforma as Record<string, unknown>;
-      const doc = (await ref.get()).data() ?? {};
+      const doc = snap.data() ?? {};
       const plataformas = Array.isArray(doc.platforms) ? [...(doc.platforms as Record<string, unknown>[])] : [];
       const indice = plataformas.findIndex(
         (p) =>
@@ -138,22 +153,23 @@ async function executarAcao(
       );
       if (indice >= 0) plataformas[indice] = { ...plataformas[indice], ...nova };
       else plataformas.push(nova);
-      await ref.set({ platforms: plataformas, updatedAt: Timestamp.now() }, { merge: true });
+      await ref.set({ platforms: plataformas, updatedAt: agora() }, { merge: true });
       return { action, projectId: ref.id, totalPlataformas: plataformas.length };
     }
 
     case 'upsert_endpoint': {
       const ref = db.collection('projects').doc(data.projectId as string);
-      if (!(await ref.get()).exists) return { action, erro: 'Projeto não encontrado.' };
+      const snap = await ref.get();
+      if (!snap.exists) return { action, erro: 'Projeto não encontrado.' };
       const novo = data.endpoint as Record<string, unknown>;
-      const doc = (await ref.get()).data() ?? {};
+      const doc = snap.data() ?? {};
       const endpoints = Array.isArray(doc.endpoints) ? [...(doc.endpoints as Record<string, unknown>[])] : [];
       const indice = endpoints.findIndex(
         (e) => (novo.id && e.id === novo.id) || (e.label === novo.label && e.url === novo.url),
       );
       if (indice >= 0) endpoints[indice] = { ...endpoints[indice], ...novo };
       else endpoints.push(novo);
-      await ref.set({ endpoints, updatedAt: Timestamp.now() }, { merge: true });
+      await ref.set({ endpoints, updatedAt: agora() }, { merge: true });
       return { action, projectId: ref.id, totalEndpoints: endpoints.length };
     }
 
@@ -163,7 +179,7 @@ async function executarAcao(
         title: data.title,
         content: data.content,
         ...(data.category ? { category: data.category } : {}),
-        createdAt: Timestamp.now(),
+        createdAt: agora(),
       });
       return { action, noteId: ref.id };
     }
@@ -174,7 +190,7 @@ async function executarAcao(
         description: data.description,
         priority: (data.priority as string) ?? 'Normal',
         isCompleted: false,
-        createdAt: Timestamp.now(),
+        createdAt: agora(),
       });
       return { action, taskId: ref.id };
     }
@@ -188,10 +204,10 @@ async function executarAcao(
         .get();
       const campos = { ...data };
       if (porTitulo.empty) {
-        const ref = await credenciais.add({ ...campos, createdAt: Timestamp.now() });
+        const ref = await credenciais.add({ ...campos, createdAt: agora() });
         return { action, credentialId: ref.id, criado: true };
       }
-      await porTitulo.docs[0].ref.set({ ...campos, updatedAt: Timestamp.now() }, { merge: true });
+      await porTitulo.docs[0].ref.set({ ...campos, updatedAt: agora() }, { merge: true });
       return { action, credentialId: porTitulo.docs[0].id, criado: false };
     }
 
@@ -201,82 +217,82 @@ async function executarAcao(
 }
 
 export default async function handler(req: Req, res: Res) {
-  if (res.setHeader) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  }
-  if (req.method === 'OPTIONS') {
-    res.status(204).json({});
-    return;
-  }
-
-  if (req.method === 'GET') {
-    const db = iniciarBanco();
-    res.status(200).json({
-      servico: 'willtech-bloco/ingest',
-      versao: 1,
-      configurado: Boolean(db),
-      chaveConfigurada: await chaveConfigurada(db),
-      acoes: ACOES,
-      uso: 'POST com Authorization: Bearer <chave> e corpo { action, data }.',
-    });
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    res.status(405).json({ ok: false, erro: 'Use GET (status) ou POST (ingestão).' });
-    return;
-  }
-
-  const db = iniciarBanco();
-  if (!db) {
-    res.status(503).json({
-      ok: false,
-      codigo: 'not_configured',
-      erro: 'Endpoint ainda não configurado: falta a variável FIREBASE_SERVICE_ACCOUNT no Vercel.',
-    });
-    return;
-  }
-
-  const chave = await chaveEsperada(db);
-  if (!chave) {
-    res.status(503).json({
-      ok: false,
-      codigo: 'no_key',
-      erro: 'Nenhuma chave de API configurada. Gere uma no painel em Integrações.',
-    });
-    return;
-  }
-
-  const autorizacao = pegarHeader(req.headers, 'authorization');
-  const enviada =
-    typeof autorizacao === 'string' && autorizacao.startsWith('Bearer ')
-      ? autorizacao.slice('Bearer '.length).trim()
-      : '';
-  if (!enviada || !chavesIguais(enviada, chave)) {
-    res.status(401).json({ ok: false, erro: 'Chave de API inválida ou ausente.' });
-    return;
-  }
-
-  let corpo: unknown = req.body;
-  if (typeof corpo === 'string') {
-    try {
-      corpo = JSON.parse(corpo);
-    } catch {
-      res.status(400).json({ ok: false, erro: 'Corpo deve ser JSON válido.' });
+  try {
+    if (res.setHeader) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+      res.status(204).json({});
       return;
     }
-  }
 
-  const parse = parseIngestRequest(corpo);
-  if (parse.ok === false) {
-    res.status(400).json({ ok: false, erro: parse.erro });
-    return;
-  }
+    if (req.method === 'GET') {
+      const adminAtivo = await carregarAdmin();
+      res.status(200).json({
+        servico: 'willtech-bloco/ingest',
+        versao: 1,
+        configurado: Boolean(adminAtivo),
+        chaveConfigurada: await chaveConfigurada(adminAtivo),
+        acoes: ACOES,
+        uso: 'POST com Authorization: Bearer <chave> e corpo { action, data }.',
+      });
+      return;
+    }
 
-  try {
-    const resultado = await executarAcao(db, parse.action, parse.data);
+    if (req.method !== 'POST') {
+      res.status(405).json({ ok: false, erro: 'Use GET (status) ou POST (ingestão).' });
+      return;
+    }
+
+    const adminAtivo = await carregarAdmin();
+    if (!adminAtivo) {
+      res.status(503).json({
+        ok: false,
+        codigo: 'not_configured',
+        erro: 'Endpoint ainda não configurado: falta a variável FIREBASE_SERVICE_ACCOUNT no Vercel (ou o JSON é inválido).',
+      });
+      return;
+    }
+
+    const chave = await chaveEsperada(adminAtivo.db);
+    if (!chave) {
+      res.status(503).json({
+        ok: false,
+        codigo: 'no_key',
+        erro: 'Nenhuma chave de API configurada. Gere uma no painel em Integrações.',
+      });
+      return;
+    }
+
+    const autorizacao = pegarHeader(req.headers, 'authorization');
+    const enviada =
+      typeof autorizacao === 'string' && autorizacao.startsWith('Bearer ')
+        ? autorizacao.slice('Bearer '.length).trim()
+        : '';
+    if (!enviada || !chavesIguais(enviada, chave)) {
+      res.status(401).json({ ok: false, erro: 'Chave de API inválida ou ausente.' });
+      return;
+    }
+
+    let corpo: unknown = req.body;
+    if (typeof corpo === 'string') {
+      try {
+        corpo = JSON.parse(corpo);
+      } catch {
+        res.status(400).json({ ok: false, erro: 'Corpo deve ser JSON válido.' });
+        return;
+      }
+    }
+
+    const parse = parseIngestRequest(corpo);
+    if (parse.ok === false) {
+      res.status(400).json({ ok: false, erro: parse.erro });
+      return;
+    }
+
+    const resultado = await executarAcao(adminAtivo.db, parse.action, parse.data);
     if (resultado.erro) {
       res.status(404).json({ ok: false, erro: resultado.erro });
       return;
@@ -284,6 +300,6 @@ export default async function handler(req: Req, res: Res) {
     res.status(200).json({ ok: true, ...resultado });
   } catch (erro) {
     console.error('Falha na ingestão:', erro);
-    res.status(500).json({ ok: false, erro: erro instanceof Error ? erro.message : 'Falha interna.' });
+    res.status(500).json({ ok: false, erro: erro instanceof Error ? `${erro.message} :: ${erro.stack ?? ''}` : 'Falha interna.' });
   }
 }

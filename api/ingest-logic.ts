@@ -6,8 +6,8 @@
  * plugin de desenvolvimento do Vite. Toda validação e sanitização do
  * payload acontece aqui, para o que entra no Firestore ser sempre limpo.
  */
-import type { PlatformName, ProjectEndpoint, ProjectPlatform } from '../types';
-import { PLATFORMS } from '../types';
+import type { PlatformName, ProjectEndpoint, ProjectPlatform } from '../types.ts';
+import { PLATFORMS } from '../types.ts';
 
 export type IngestAction =
   | 'upsert_project'
