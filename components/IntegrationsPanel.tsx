@@ -9,12 +9,15 @@ import {
   KeyRound,
   PlugZap,
   RefreshCw,
+  Save,
   ShieldCheck,
   Terminal,
 } from 'lucide-react';
 import { systemService } from '../src/services/firestoreService';
 
 type Saude = 'verificando' | 'ok' | 'sem_chave' | 'nao_configurado' | 'indisponivel';
+
+const ENDPOINT_PADRAO = 'https://willydev.tail4a0af0.ts.net';
 
 const ACOES_DOC: Array<{ acao: string; descricao: string }> = [
   { acao: 'upsert_project', descricao: 'Cria/atualiza um projeto: name, repo, stack, deployUrl, ownerEmail, platforms, endpoints.' },
@@ -25,18 +28,27 @@ const ACOES_DOC: Array<{ acao: string; descricao: string }> = [
   { acao: 'upsert_credential', descricao: 'Cria/atualiza uma credencial de desenvolvimento.' },
 ];
 
+const EditIcon: React.FC = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+  </svg>
+);
+
 const IntegrationsPanel: React.FC = () => {
-  const base = `${window.location.origin}/api/ingest`;
+  const [endpointUrl, setEndpointUrl] = useState(ENDPOINT_PADRAO);
+  const [urlEditavel, setUrlEditavel] = useState('');
+  const [editandoUrl, setEditandoUrl] = useState(false);
   const [saude, setSaude] = useState<Saude>('verificando');
   const [chave, setChave] = useState<string | null>(null);
   const [mostrarChave, setMostrarChave] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
+  const [salvandoUrl, setSalvandoUrl] = useState(false);
 
   const verificar = useCallback(async () => {
     setSaude('verificando');
     try {
-      const resposta = await fetch(base, { headers: { Accept: 'application/json' } });
+      const resposta = await fetch(endpointUrl, { headers: { Accept: 'application/json' } });
       const info = (await resposta.json()) as { configurado?: boolean; chaveConfigurada?: boolean };
       if (typeof info.configurado !== 'boolean') {
         setSaude('indisponivel');
@@ -50,14 +62,25 @@ const IntegrationsPanel: React.FC = () => {
     } catch {
       setSaude('indisponivel');
     }
-  }, [base]);
+  }, [endpointUrl]);
+
+  useEffect(() => {
+    void systemService
+      .getIngestConfig()
+      .then((cfg) => {
+        if (cfg?.apiKey) setChave(cfg.apiKey);
+        if (cfg?.endpointUrl) {
+          setEndpointUrl(cfg.endpointUrl);
+          setUrlEditavel(cfg.endpointUrl);
+        } else {
+          setUrlEditavel(ENDPOINT_PADRAO);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     void verificar();
-    void systemService
-      .getIngestConfig()
-      .then((cfg) => setChave(cfg?.apiKey ?? null))
-      .catch(() => setChave(null));
   }, [verificar]);
 
   const gerarChave = async () => {
@@ -74,6 +97,20 @@ const IntegrationsPanel: React.FC = () => {
     }
   };
 
+  const salvarUrl = async () => {
+    setSalvandoUrl(true);
+    try {
+      const url = urlEditavel.trim() || ENDPOINT_PADRAO;
+      await systemService.saveEndpointUrl(url);
+      setEndpointUrl(url);
+      setEditandoUrl(false);
+    } catch (erro) {
+      console.error('Falha ao salvar URL:', erro);
+    } finally {
+      setSalvandoUrl(false);
+    }
+  };
+
   const copiar = (texto: string, rotulo: string) => {
     void navigator.clipboard.writeText(texto);
     setCopiado(rotulo);
@@ -83,14 +120,14 @@ const IntegrationsPanel: React.FC = () => {
   const mascaraChave = (k: string) => (mostrarChave ? k : `${k.slice(0, 7)}••••••••••••••••${k.slice(-4)}`);
 
   const curlExemplo = chave
-    ? `curl -X POST ${base} \\
+    ? `curl -X POST ${endpointUrl} \\
   -H "Authorization: Bearer ${chave}" \\
   -H "Content-Type: application/json" \\
   -d '{"action":"upsert_project","data":{"name":"Meu App","repo":"willy-henrique/meu-app","deployUrl":"https://meu-app.vercel.app","ownerEmail":"willydev01@gmail.com","platforms":[{"platform":"vercel","email":"willydev01@gmail.com","projectName":"meu-app"}],"endpoints":[{"label":"API","url":"https://api.meu-app.com","method":"GET"}]}}'`
     : null;
 
   const nodeExemplo = chave
-    ? `const resposta = await fetch('${base}', {
+    ? `const resposta = await fetch('${endpointUrl}', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer ${chave}',
@@ -125,9 +162,44 @@ console.log(await resposta.json());`
               <PlugZap size={18} className="text-emerald-300" />
               <div>
                 <h3 className="text-sm font-bold text-white">Status do endpoint</h3>
-                <p className="mt-0.5 text-xs text-neutral-500">
-                  <code className="text-neutral-400">{base}</code>
-                </p>
+                {editandoUrl ? (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={urlEditavel}
+                      onChange={(e) => setUrlEditavel(e.target.value)}
+                      className="h-8 w-72 max-w-full rounded-lg border border-neutral-800 bg-[#0d100f] px-3 text-xs text-neutral-200 outline-none focus:border-emerald-400/30"
+                      placeholder={ENDPOINT_PADRAO}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void salvarUrl()}
+                      disabled={salvandoUrl}
+                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-300 px-2.5 py-1.5 text-[11px] font-bold text-[#07110c] disabled:opacity-50"
+                    >
+                      <Save size={12} /> {salvandoUrl ? 'Salvando…' : 'Salvar'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditandoUrl(false)}
+                      className="rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-neutral-400 hover:text-white"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-500">
+                    <code className="text-neutral-400">{endpointUrl}</code>
+                    <button
+                      type="button"
+                      onClick={() => setEditandoUrl(true)}
+                      title="Trocar URL do endpoint"
+                      className="text-neutral-600 transition hover:text-emerald-300"
+                    >
+                      <EditIcon />
+                    </button>
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -142,8 +214,8 @@ console.log(await resposta.json());`
                 </span>
               )}
               {saude === 'nao_configurado' && (
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-400/10 px-3 py-1.5 text-xs font-semibold text-red-300">
-                  <AlertTriangle size={13} /> Configuração pendente
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300">
+                  <AlertTriangle size={13} /> Servidor sem chave de serviço
                 </span>
               )}
               {saude === 'indisponivel' && (
@@ -167,63 +239,17 @@ console.log(await resposta.json());`
           </div>
 
           {saude === 'nao_configurado' && (
-            <div className="mt-5 rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-5">
-              <p className="text-xs font-semibold text-amber-200">
-                Uma configuração de 2 minutos libera o endpoint. Faça uma vez e nunca mais:
-              </p>
-              <ol className="mt-3 space-y-2.5 text-xs leading-5 text-neutral-400">
-                <li>
-                  <span className="font-bold text-neutral-200">1.</span> Abra o{' '}
-                  <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-emerald-300 underline-offset-2 hover:underline">
-                    Console do Firebase <ExternalLink size={10} className="inline" />
-                  </a>{' '}
-                  e entre com <span className="text-neutral-200">willydev01@gmail.com</span>.
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">2.</span> Selecione o projeto{' '}
-                  <span className="text-neutral-200">willtech-a9bb6</span> (WillTech Bloco).
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">3.</span> Clique na engrenagem (canto superior esquerdo) →{' '}
-                  <span className="text-neutral-200">Configurações do projeto</span> → aba{' '}
-                  <span className="text-neutral-200">Contas de serviço</span>.
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">4.</span> Clique em{' '}
-                  <span className="text-neutral-200">Gerar nova chave privada</span> →{' '}
-                  <span className="text-neutral-200">Gerar chave</span>. Um arquivo JSON baixa para a pasta Downloads.
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">5.</span> Abra{' '}
-                  <a href="https://vercel.com" target="_blank" rel="noreferrer" className="text-emerald-300 underline-offset-2 hover:underline">
-                    vercel.com <ExternalLink size={10} className="inline" />
-                  </a>{' '}
-                  → projeto <span className="text-neutral-200">willtech-bloco</span> →{' '}
-                  <span className="text-neutral-200">Settings</span> →{' '}
-                  <span className="text-neutral-200">Environment Variables</span>.
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">6.</span> Adicione a variável{' '}
-                  <span className="text-neutral-200">FIREBASE_SERVICE_ACCOUNT</span> e cole{' '}
-                  <span className="text-neutral-200">todo o conteúdo do arquivo JSON</span> como valor (ambiente Production).
-                  Salve e confirme o redeploy sugerido.
-                </li>
-                <li>
-                  <span className="font-bold text-neutral-200">7.</span> Volte aqui e clique em{' '}
-                  <span className="text-neutral-200">Verificar de novo</span>.
-                </li>
-              </ol>
-              <p className="mt-4 text-[11px] text-neutral-500">
-                Prefere que o Hermes faça por você? Avise no chat — ele gera a chave, copia o arquivo e configura o
-                ambiente sem você colar nada manualmente.
-              </p>
+            <div className="mt-5 rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-4 text-xs leading-5 text-amber-100/80">
+              O endpoint roda no seu servidor pessoal (Tailscale), mas a chave de serviço do Firebase ainda não foi
+              conectada lá. Peça ao Hermes: <span className="font-semibold text-amber-200">"conecta a chave de serviço do WillTech Bloco"</span>.
             </div>
           )}
 
           {saude === 'indisponivel' && (
-            <p className="mt-5 rounded-xl border border-red-400/15 bg-red-400/[0.04] p-4 text-xs leading-5 text-red-200">
-              O endpoint não respondeu. Se você acabou de publicar alterações, aguarde o deploy terminar e tente de novo.
-            </p>
+            <div className="mt-5 rounded-xl border border-red-400/15 bg-red-400/[0.04] p-4 text-xs leading-5 text-red-200">
+              O endpoint não respondeu. Confira se esta máquina está na rede Tailscale (o endpoint vive em{' '}
+              <span className="font-semibold">willydev.tail4a0af0.ts.net</span>) e se o servidor pessoal está ligado.
+            </div>
           )}
         </div>
 
@@ -286,7 +312,7 @@ console.log(await resposta.json());`
           )}
           {saude === 'sem_chave' && chave && (
             <p className="mt-3 text-[11px] text-amber-300/80">
-              A chave existe no painel mas o servidor ainda não a viu — pode levar até 1 minuto após o deploy.
+              A chave existe no painel mas o servidor ainda não a viu — atualize em alguns segundos.
             </p>
           )}
         </div>
@@ -358,9 +384,20 @@ console.log(await resposta.json());`
             <p className="font-bold text-neutral-300">n8n</p>
             <p className="mt-1">
               Nó <span className="text-neutral-300">HTTP Request</span>: Method <span className="text-neutral-300">POST</span>, URL{' '}
-              <code className="text-neutral-400">{base}</code>, Header{' '}
+              <code className="text-neutral-400">{endpointUrl}</code>, Header{' '}
               <span className="text-neutral-300">Authorization = Bearer &lt;chave&gt;</span>, Body = JSON com{' '}
               <span className="text-neutral-300">{'{ action, data }'}</span>.
+            </p>
+            <p className="mt-3 text-neutral-600">
+              O endpoint também aceita GET para checar o status:{' '}
+              <a
+                href={endpointUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-emerald-300 underline-offset-2 hover:underline"
+              >
+                {endpointUrl} <ExternalLink size={10} className="inline" />
+              </a>
             </p>
           </div>
         </div>
